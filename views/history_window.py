@@ -1,9 +1,11 @@
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QTableWidget, 
-                               QTableWidgetItem, QHeaderView, QLabel, QPushButton)
-from PySide6.QtCore import Qt
+                               QTableWidgetItem, QHeaderView, QLabel, QPushButton,
+                               QLineEdit, QDateEdit)
+from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor, QFont
 from database.db_config import get_session
 from database.models import HoaDon
+from datetime import datetime, time
 
 # ========================================================
 # 1. TAB CHI TIẾT HÓA ĐƠN (Popup hiện ra khi nhấp đúp)
@@ -111,14 +113,14 @@ class BillDetailDialog(QDialog):
 class HistoryDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Lịch Sử Giao Dịch Gần Đây")
-        self.resize(780, 520)
+        self.setWindowTitle("Lịch Sử Giao Dịch")
+        self.resize(900, 600)
         self.setStyleSheet("background-color: #1E1E2E; color: white;")
 
         layout = QVBoxLayout(self)
 
         title = QLabel(
-            "<b>📜 LỊCH SỬ 50 GIAO DỊCH GẦN NHẤT</b><br>"
+            "<b>📜 TẤT CẢ LỊCH SỬ GIAO DỊCH</b><br>"
             "<span style='font-size: 13px; color: #BDC3C7;'>"
             "(💡 Mẹo: Nhấp đúp chuột vào một hóa đơn bất kỳ để xem chi tiết các món)"
             "</span>"
@@ -126,6 +128,42 @@ class HistoryDialog(QDialog):
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("font-size: 18px; color: #3498DB; margin-bottom: 10px;")
         layout.addWidget(title)
+
+        # Bộ lọc
+        filter_layout = QHBoxLayout()
+        
+        self.txt_search = QLineEdit()
+        self.txt_search.setPlaceholderText("🔍 Nhập mã HD hoặc thu ngân...")
+        self.txt_search.setStyleSheet("background-color: #2D2D3F; padding: 8px; border: 1px solid #3E3E55; border-radius: 5px; font-size: 13px; color: white;")
+        filter_layout.addWidget(self.txt_search)
+        
+        lbl_tu = QLabel("Từ:")
+        lbl_tu.setStyleSheet("font-weight: bold; color: #BDC3C7;")
+        filter_layout.addWidget(lbl_tu)
+        
+        self.de_from = QDateEdit(QDate.currentDate().addDays(-30)) # Mặc định 30 ngày qua
+        self.de_from.setCalendarPopup(True)
+        self.de_from.setDisplayFormat("dd/MM/yyyy")
+        self.de_from.setStyleSheet("background-color: #2D2D3F; padding: 5px; border: 1px solid #3E3E55; border-radius: 5px; color: white;")
+        filter_layout.addWidget(self.de_from)
+        
+        lbl_den = QLabel("Đến:")
+        lbl_den.setStyleSheet("font-weight: bold; color: #BDC3C7;")
+        filter_layout.addWidget(lbl_den)
+        
+        self.de_to = QDateEdit(QDate.currentDate())
+        self.de_to.setCalendarPopup(True)
+        self.de_to.setDisplayFormat("dd/MM/yyyy")
+        self.de_to.setStyleSheet("background-color: #2D2D3F; padding: 5px; border: 1px solid #3E3E55; border-radius: 5px; color: white;")
+        filter_layout.addWidget(self.de_to)
+
+        btn_filter = QPushButton("🔍 Lọc")
+        btn_filter.setMinimumHeight(35)
+        btn_filter.setStyleSheet("background-color: #8E44AD; font-weight: bold; border-radius: 5px; font-size: 13px; padding: 5px 15px; color: white;")
+        btn_filter.clicked.connect(self.load_data)
+        filter_layout.addWidget(btn_filter)
+        
+        layout.addLayout(filter_layout)
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
@@ -164,48 +202,82 @@ class HistoryDialog(QDialog):
         self.load_data()
 
     def load_data(self):
-        """Load lại 50 hóa đơn mới nhất — gọi được bất cứ lúc nào."""
+        """Load danh sách hóa đơn theo bộ lọc."""
         self.table.setRowCount(0)
         session = get_session()
         try:
-            orders = (
-                session.query(HoaDon)
-                .order_by(HoaDon.id.desc())
-                .limit(50)
-                .all()
+            search_text = self.txt_search.text().strip().lower()
+            start_date = self.de_from.date().toPython()
+            end_date = self.de_to.date().toPython()
+            
+            dt_start = datetime.combine(start_date, time.min)
+            dt_end = datetime.combine(end_date, time.max)
+
+            q = session.query(HoaDon).filter(
+                HoaDon.thoi_gian >= dt_start,
+                HoaDon.thoi_gian <= dt_end
             )
-            for i, order in enumerate(orders):
-                self.table.insertRow(i)
-
-                # Cột 0: Mã hóa đơn
-                ma_hd_str = f"HD{order.id:04d}"
-                item_ma = QTableWidgetItem(ma_hd_str)
-                item_ma.setData(Qt.UserRole, order.id)
-                item_ma.setForeground(QColor("#F1C40F"))
-                font = item_ma.font(); font.setBold(True); item_ma.setFont(font)
-                self.table.setItem(i, 0, item_ma)
-
-                # Cột 1: Thời gian
-                thoi_gian = (
-                    order.thoi_gian.strftime("%H:%M - %d/%m/%Y")
-                    if order.thoi_gian else "Không rõ"
-                )
-                self.table.setItem(i, 1, QTableWidgetItem(thoi_gian))
-
-                # Cột 2: Thu ngân
+            orders = q.order_by(HoaDon.thoi_gian.desc()).all()
+            
+            current_date_str = ""
+            
+            for order in orders:
+                # Tìm thu ngân
                 thu_ngan = "Hệ thống"
                 try:
                     if order.phien_lam_viec and order.phien_lam_viec.nhan_vien:
                         thu_ngan = order.phien_lam_viec.nhan_vien.ten_nv
                 except Exception:
                     pass
-                self.table.setItem(i, 2, QTableWidgetItem(thu_ngan))
+
+                ma_hd_str = f"HD{order.id:04d}"
+                
+                # Lọc theo search text (mã HD hoặc tên thu ngân)
+                if search_text:
+                    if search_text not in ma_hd_str.lower() and search_text not in thu_ngan.lower():
+                        continue
+                
+                # Chia mốc ngày
+                date_str = order.thoi_gian.strftime("%d/%m/%Y") if order.thoi_gian else "Không rõ"
+                if date_str != current_date_str:
+                    current_date_str = date_str
+                    
+                    row = self.table.rowCount()
+                    self.table.insertRow(row)
+                    item_sep = QTableWidgetItem(f"📅 Ngày {date_str}")
+                    item_sep.setBackground(QColor("#3E3E55"))
+                    item_sep.setForeground(QColor("#F39C12"))
+                    font_sep = item_sep.font(); font_sep.setBold(True); item_sep.setFont(font_sep)
+                    # Căn giữa text cho item
+                    item_sep.setTextAlignment(Qt.AlignCenter)
+                    self.table.setItem(row, 0, item_sep)
+                    self.table.setSpan(row, 0, 1, 5)
+
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+
+                # Cột 0: Mã hóa đơn
+                item_ma = QTableWidgetItem(ma_hd_str)
+                item_ma.setData(Qt.UserRole, order.id)
+                item_ma.setForeground(QColor("#F1C40F"))
+                font = item_ma.font(); font.setBold(True); item_ma.setFont(font)
+                self.table.setItem(row, 0, item_ma)
+
+                # Cột 1: Thời gian
+                thoi_gian = (
+                    order.thoi_gian.strftime("%H:%M") # chỉ hiển thị giờ vì đã có ngày
+                    if order.thoi_gian else "Không rõ"
+                )
+                self.table.setItem(row, 1, QTableWidgetItem(thoi_gian))
+
+                # Cột 2: Thu ngân
+                self.table.setItem(row, 2, QTableWidgetItem(thu_ngan))
 
                 # Cột 3: Tổng tiền
                 tong_tien = f"{order.thanh_tien:,.0f} đ" if order.thanh_tien else "0 đ"
                 item_tien = QTableWidgetItem(tong_tien)
                 item_tien.setForeground(QColor("#2ECC71"))
-                self.table.setItem(i, 3, item_tien)
+                self.table.setItem(row, 3, item_tien)
 
                 # Cột 4: Trạng thái
                 tt = getattr(order, 'trang_thai', 'Đã thanh toán') or 'Đã thanh toán'
@@ -216,11 +288,10 @@ class HistoryDialog(QDialog):
                     item_tt.setForeground(QColor("#E74C3C"))
                 else:
                     item_tt.setForeground(QColor("#F1C40F"))
-                self.table.setItem(i, 4, item_tt)
+                self.table.setItem(row, 4, item_tt)
 
         except Exception as e:
             import traceback; traceback.print_exc()
-            # Hiện lỗi ngay trong bảng để dễ debug
             self.table.setRowCount(1)
             err_item = QTableWidgetItem(f"❌ Lỗi tải dữ liệu: {e}")
             err_item.setForeground(QColor("#E74C3C"))

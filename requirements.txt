@@ -1,0 +1,7 @@
+2 nút: khuyến mãi và điểm TV
+- khuyến mãi sẽ tự động áp mã hợp lí nhất
+- điểm TV thì sẽ có 2 lựa chọn là thêm TV và tích điểm
+    + thêm TV thì popup lên 1 cửa sổ để tạo
+    + tích điểm thì sẽ có cơ chế tính điểm dựa trên tổng hóa đơn thanh toán
+- sửa ở chỗ danh mục phân loại: sao cho người dùng có thể tự tạo phân loại mình muốn
+- và thêm 1 ô để nhập tên hoặc sdt khách hàng khi thanh toán 

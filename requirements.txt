@@ -1,4 +1,4 @@
-2 nút: khuyến mãi và điểm TV
+cần update 2 nút: khuyến mãi và điểm TV
 - khuyến mãi sẽ tự động áp mã hợp lí nhất
 - điểm TV thì sẽ có 2 lựa chọn là thêm TV và tích điểm
     + thêm TV thì popup lên 1 cửa sổ để tạo

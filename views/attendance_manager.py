@@ -1,431 +1,728 @@
 """
 views/attendance_manager.py
-─────────────────────────────────────────────────────────────────
-Dialog Điểm Danh — Quản lý chấm công nhân viên theo ngày.
+══════════════════════════════════════════════════════════════════
+Báo Cáo Điểm Danh — bảng báo cáo toàn bộ ca trong ngày.
 
-Bảng DB cần có (thêm vào models.py nếu chưa có):
-
-    class ChamCong(Base):
-        __tablename__ = "cham_cong"
-        id           = Column(Integer, primary_key=True)
-        nhan_vien_id = Column(Integer, ForeignKey("nhan_vien.id"))
-        ngay         = Column(Date, nullable=False)
-        gio_vao      = Column(Time, nullable=True)
-        gio_ra       = Column(Time, nullable=True)
-        trang_thai   = Column(String, default="Co_mat")  # Co_mat / Vang / Tre
-        ghi_chu      = Column(String, nullable=True)
-        nhan_vien    = relationship("NhanVien", back_populates="cham_congs")
+• Một NV nhiều ca → nhiều dòng riêng, mỗi dòng độc lập
+• Hiển thị: Tên NV | Chức vụ | Ca | Giờ ca | Check-in | Check-out
+            | Giờ thực | Trạng thái | Ghi chú
+• Trạng thái: Chưa đến / Đang làm / Đi trễ / Đã ra / Về sớm / Vắng
+• Lọc theo ngày, theo ca, theo trạng thái
+• Thống kê nhanh theo từng trạng thái
+• Tự động làm mới mỗi 60 giây
+• Không có nút check-in / check-out inline
+══════════════════════════════════════════════════════════════════
 """
+from __future__ import annotations
 
-from datetime import date, time as dtime, datetime
+from datetime import date, datetime, time as dtime, timedelta
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableWidget, QTableWidgetItem, QHeaderView, QComboBox,
-    QMessageBox, QWidget, QDateEdit, QTimeEdit, QLineEdit,
-    QFormLayout, QFrame,
+    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
+    QDateEdit, QWidget, QComboBox, QFrame,
 )
-from PySide6.QtCore import Qt, QDate, QTime
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, QDate, QTimer
+from PySide6.QtGui import QColor, QFont
 
 from database.db_config import get_session
+from database.models import NhanVien, CaLamViec, PhanCongCaLam, PhienLamViec, ChamCong
 
-# ── Import model an toàn ──────────────────────────────────────
-try:
-    from database.models import ChamCong, NhanVien
-    _MODELS_OK = True
-except ImportError:
-    _MODELS_OK = False
+# ── Hằng số ──────────────────────────────────────────────────────────────────
+CHECKIN_EARLY_MIN  = 15   # phút — cho phép vào sớm trước giờ ca
+CHECKOUT_EARLY_MIN = 15   # phút — cho phép ra sớm trước giờ kết thúc
 
+# ── Màu ──────────────────────────────────────────────────────────────────────
+BG       = "#1E1E2E"
+BG_CARD  = "#2D2D3F"
+BG_ALT   = "#252535"
+ACCENT   = "#3498DB"
+GREEN    = "#27AE60"
+ORANGE   = "#E67E22"
+RED      = "#E74C3C"
+YELLOW   = "#F1C40F"
+TEXT     = "#ECF0F1"
+TEXT_DIM = "#A1A1AA"
+BORDER   = "#3E3E55"
 
-STYLE = """
-QDialog, QWidget { background-color: #1E1E2E; color: white; }
-QTableWidget {
-    background-color: #2D2D3F; border: none; border-radius: 8px;
-    gridline-color: #3E3E55; color: white; font-size: 13px;
+CA_COLOR = {
+    "Ca Sáng":  "#F39C12",
+    "Ca Chiều": "#2980B9",
+    "Ca Tối":   "#8E44AD",
 }
-QTableWidget::item { padding: 6px; border-bottom: 1px solid #3E3E55; }
-QTableWidget::item:selected { background: #2980B9; }
-QHeaderView::section {
-    background-color: #2C3E50; color: #A1A1AA; padding: 8px;
-    border: none; font-weight: bold;
+
+STATUS_META = {
+    # tên               màu chữ    màu nền badge    icon
+    "Chưa đến":      ("#C8C8D4", "#4A4A6040",    "⏳"),
+    "Đang làm":      ("#00FF88", "#00C86840",    "🟢"),
+    "Đi trễ":        ("#FFB347", "#FF8C0040",    "⚠️"),
+    "Đã hoàn thành": ("#4FC3F7", "#0288D140",    "✅"),
+    "Về sớm":        ("#FFE066", "#FFD00040",    "⬇️"),
+    "Vắng":          ("#FF6B6B", "#E53935 40",   "❌"),
 }
-QPushButton { border-radius: 6px; padding: 6px 12px; font-weight: bold; }
-QComboBox, QDateEdit, QTimeEdit, QLineEdit {
-    background-color: #2D2D3F; border: 1px solid #3E3E55;
-    border-radius: 6px; padding: 6px; color: white;
-}
-QLabel { color: #BDC3C7; }
+
+STYLE = f"""
+QDialog, QWidget  {{ background:{BG}; color:{TEXT}; font-family:'Segoe UI'; }}
+QLabel            {{ background:transparent; }}
+QTableWidget {{
+    background:{BG_CARD}; border:none; border-radius:10px;
+    gridline-color:{BORDER}; color:#ECF0F1; font-size:13px;
+}}
+QTableWidget::item          {{ padding:7px 8px; border-bottom:1px solid {BORDER}; }}
+QTableWidget::item:selected {{ background:{ACCENT}44; color:white; }}
+QHeaderView::section {{
+    background:{BG_ALT}; color:#FFFFFF; padding:9px 8px;
+    border:none; font-weight:bold; font-size:13px; letter-spacing:0.5px;
+}}
+QDateEdit, QComboBox {{
+    background:{BG_CARD}; border:1px solid {BORDER};
+    border-radius:6px; padding:5px 10px; color:{TEXT}; font-size:13px;
+}}
+QDateEdit:focus, QComboBox:focus {{ border-color:{ACCENT}; }}
+QComboBox::drop-down  {{ border:none; }}
+QComboBox QAbstractItemView {{
+    background:{BG_CARD}; color:{TEXT};
+    selection-background-color:{ACCENT};
+}}
+QPushButton {{
+    border-radius:6px; font-weight:bold; font-size:13px;
+    color:white; padding:6px 16px;
+}}
+QScrollBar:vertical   {{ background:{BG_ALT}; width:7px; border-radius:4px; }}
+QScrollBar::handle:vertical {{ background:{BORDER}; border-radius:4px; min-height:20px; }}
 """
 
-TT_COLOR = {
-    "Co_mat": "#2ECC71",
-    "Vang":   "#E74C3C",
-    "Tre":    "#F39C12",
-}
 
-
-def _btn(text, color, h=36):
+# ── Helpers UI ───────────────────────────────────────────────────────────────
+def _btn(text: str, color: str, h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(h)
-    b.setStyleSheet(f"background-color:{color}; color:white; font-weight:bold; border-radius:6px;")
+    b.setStyleSheet(
+        f"background:{color}; color:white; font-weight:bold;"
+        f" border-radius:6px; font-size:13px; padding:0 14px;"
+    )
     return b
 
 
-def _lbl(text, color="#BDC3C7", size=13, bold=False):
+def _lbl(text: str, color: str = TEXT, size: int = 13, bold: bool = False) -> QLabel:
     l = QLabel(text)
-    w = "bold" if bold else "normal"
-    l.setStyleSheet(f"color:{color}; font-size:{size}px; font-weight:{w}; background:transparent;")
+    l.setStyleSheet(
+        f"color:{color}; font-size:{size}px;"
+        + (" font-weight:bold;" if bold else "")
+    )
     return l
 
 
-# ═══════════════════════════════════════════════════════════════
-# FORM ĐIỂM DANH / SỬA CHẤM CÔNG
-# ═══════════════════════════════════════════════════════════════
-class ChamCongForm(QDialog):
-    def __init__(self, cc_id=None, default_nv_id=None, default_ngay=None, parent=None):
+def _sep() -> QFrame:
+    f = QFrame()
+    f.setFrameShape(QFrame.VLine)
+    f.setStyleSheet(f"color:{BORDER};")
+    return f
+
+
+# ── Nghiệp vụ ────────────────────────────────────────────────────────────────
+def _combine(d: date, t: dtime) -> datetime:
+    return datetime.combine(d, t)
+
+
+def _fmt_time(dt: datetime | None) -> str:
+    return dt.strftime("%H:%M") if dt else "—"
+
+
+def _fmt_dur(vao: datetime | None, ra: datetime | None) -> str:
+    if not vao or not ra:
+        return "—"
+    mins = int((ra - vao).total_seconds() / 60)
+    h, m = divmod(abs(mins), 60)
+    return f"{h}g{m:02d}p"
+
+
+def _calc_status(
+    d: date,
+    gio_bd: dtime | None, gio_kt: dtime | None,
+    vao: datetime | None, ra: datetime | None,
+    now: datetime,
+) -> str:
+    if not gio_bd:
+        return "Chưa đến"
+
+    dt_bd = _combine(d, gio_bd)
+    dt_kt = (_combine(d, gio_kt) if gio_kt else dt_bd + timedelta(hours=8))
+    if gio_kt and gio_kt < gio_bd:          # ca qua đêm
+        dt_kt += timedelta(days=1)
+
+    if vao is None:
+        return "Vắng" if now > dt_kt else "Chưa đến"
+
+    if ra is None:
+        return "Đi trễ" if vao > dt_bd else "Đang làm"
+
+    # đã checkout
+    dt_ok = dt_kt - timedelta(minutes=CHECKOUT_EARLY_MIN)
+    return "Về sớm" if ra < dt_ok else "Đã hoàn thành"
+
+
+def _calc_note(
+    d: date,
+    gio_bd: dtime | None, gio_kt: dtime | None,
+    vao: datetime | None, ra: datetime | None,
+) -> str:
+    if not gio_bd:
+        return ""
+    parts: list[str] = []
+    dt_bd = _combine(d, gio_bd)
+    dt_kt = (_combine(d, gio_kt) if gio_kt else None)
+    if dt_kt and gio_kt and gio_kt < gio_bd:
+        dt_kt += timedelta(days=1)
+
+    if vao:
+        diff = int((vao - dt_bd).total_seconds() / 60)
+        if diff > 0:
+            parts.append(f"Trễ {diff} phút")
+        elif diff < -CHECKIN_EARLY_MIN:
+            parts.append(f"Vào sớm {-diff} phút")
+
+    if ra and dt_kt:
+        diff = int((ra - dt_kt).total_seconds() / 60)
+        if diff < -CHECKOUT_EARLY_MIN:
+            parts.append(f"Về sớm {-diff} phút")
+        elif diff > 0:
+            parts.append(f"Tăng ca {diff} phút")
+
+    return "  •  ".join(parts)
+
+
+def _get_rows(target: date) -> list[dict]:
+    """
+    Trả toàn bộ dòng báo cáo cho ngày target.
+    Ưu tiên đọc từ ChamCong (schema mới, nhiều ca/ngày).
+    Fallback sang PhienLamViec nếu ChamCong chưa có dữ liệu.
+    Chỉ hiện nhân viên có phân công CÁ đó trong ngày.
+    """
+    rows: list[dict] = []
+    now = datetime.now()
+    s   = get_session()
+
+    # Kiểm tra schema ChamCong: mới hay cũ?
+    _new_schema = hasattr(ChamCong, 'thoi_gian_vao')
+    _old_schema = hasattr(ChamCong, 'gio_vao')
+
+    try:
+        pcs = (s.query(PhanCongCaLam)
+               .filter(PhanCongCaLam.ngay_lam == target)
+               .order_by(PhanCongCaLam.ma_ca, PhanCongCaLam.ma_nv)
+               .all())
+
+        for pc in pcs:
+            nv = s.get(NhanVien, pc.ma_nv)
+            ca = s.get(CaLamViec, pc.ma_ca)
+            if not nv or not ca:
+                continue
+
+            gio_bd = ca.gio_bat_dau
+            gio_kt = ca.gio_ket_thuc
+
+            vao = None
+            ra  = None
+            phien_id = None
+
+            # ── Ưu tiên đọc từ ChamCong ──────────────────────────
+            cc = None
+
+            if _new_schema:
+                # Schema mới: lọc theo ma_ca
+                cc = (s.query(ChamCong)
+                      .filter_by(nhan_vien_id=nv.id, ngay=target, ma_ca=ca.id)
+                      .first())
+                if cc:
+                    vao = cc.thoi_gian_vao
+                    ra  = cc.thoi_gian_ra
+                    phien_id = getattr(cc, 'ma_phien', None)
+
+            elif _old_schema:
+                # Schema cũ: 1 bản ghi/ngày, không có ma_ca
+                cc = (s.query(ChamCong)
+                      .filter_by(nhan_vien_id=nv.id, ngay=target)
+                      .first())
+                if cc:
+                    vao = (datetime.combine(target, cc.gio_vao)
+                           if cc.gio_vao else None)
+                    ra  = (datetime.combine(target, cc.gio_ra)
+                           if cc.gio_ra else None)
+
+            # ── Fallback: PhienLamViec nếu ChamCong rỗng ─────────
+            if vao is None and gio_bd:
+                w_start = _combine(target, gio_bd) - timedelta(hours=2)
+                w_end   = _combine(target, gio_bd) + timedelta(hours=14)
+                phien   = (s.query(PhienLamViec)
+                            .filter(
+                                PhienLamViec.ma_nv == nv.id,
+                                PhienLamViec.thoi_gian_dang_nhap >= w_start,
+                                PhienLamViec.thoi_gian_dang_nhap <= w_end,
+                            )
+                            .order_by(PhienLamViec.thoi_gian_dang_nhap.asc())
+                            .first())
+                if phien:
+                    vao      = phien.thoi_gian_dang_nhap
+                    ra       = phien.thoi_gian_dang_xuat
+                    phien_id = phien.id
+
+            rows.append({
+                "nv_id":    nv.id,
+                "nv_ten":   nv.ten_nv,
+                "nv_cv":    nv.chuc_vu or "—",
+                "ca_id":    ca.id,
+                "ten_ca":   ca.ten_ca,
+                "gio_bd":   gio_bd.strftime("%H:%M") if gio_bd else "—",
+                "gio_kt":   gio_kt.strftime("%H:%M") if gio_kt else "—",
+                "phien_id": phien_id,
+                "vao":      vao,
+                "ra":       ra,
+                "status":   _calc_status(target, gio_bd, gio_kt, vao, ra, now),
+                "note":     _calc_note(target, gio_bd, gio_kt, vao, ra),
+            })
+    finally:
+        s.close()
+
+    rows.sort(key=lambda r: (r["gio_bd"], r["nv_ten"]))
+    return rows
+
+
+# ── Hàm tiện ích dùng bởi main_window ────────────────────────────────────────
+def get_open_shifts_today(nv_id: int) -> list[dict]:
+    rows = _get_rows(date.today())
+    return [
+        {"phien_id": r["phien_id"], "ten_ca": r["ten_ca"],
+         "gio_bd": r["gio_bd"], "gio_kt": r["gio_kt"],
+         "vao_luc": _fmt_time(r["vao"])}
+        for r in rows
+        if r["nv_id"] == nv_id and r["vao"] and not r["ra"] and r["phien_id"]
+    ]
+
+
+def auto_checkout_all(nv_id: int) -> list[str]:
+    """
+    Tự động checkout tất cả ca đang mở của nhân viên hôm nay.
+    Ưu tiên dùng auth_controller.checkout_ca (ChamCong).
+    Fallback sang PhienLamViec nếu cần.
+    """
+    msgs = []
+    now  = datetime.now()
+
+    # Thử dùng auth_controller trước (schema mới)
+    try:
+        from controllers.auth_controller import lay_ca_dang_mo, checkout_ca
+        ca_mo = lay_ca_dang_mo(nv_id)
+        if ca_mo:
+            for ca in ca_mo:
+                ok, msg = checkout_ca(ca["id"])
+                msgs.append(f"{'✅' if ok else '❌'} {ca['ten_ca']} ({ca['gio_bd']}–{ca['gio_kt']}): {msg}")
+            return msgs
+    except Exception:
+        pass
+
+    # Fallback: PhienLamViec
+    open_s = get_open_shifts_today(nv_id)
+    s      = get_session()
+    try:
+        for item in open_s:
+            if not item["phien_id"]:
+                continue
+            phien = s.get(PhienLamViec, item["phien_id"])
+            if not phien or phien.thoi_gian_dang_xuat:
+                msgs.append(f"⚠️ {item['ten_ca']}: Đã checkout hoặc không tìm thấy.")
+                continue
+            phien.thoi_gian_dang_xuat = now
+            phien.dang_hoat_dong      = False
+            msgs.append(f"✅ {item['ten_ca']} ({item['gio_bd']}–{item['gio_kt']}): Auto checkout {now.strftime('%H:%M')}")
+        s.commit()
+    except Exception as e:
+        s.rollback()
+        msgs.append(f"❌ Lỗi: {e}")
+    finally:
+        s.close()
+    return msgs
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BADGE TRẠNG THÁI  (widget thuần — không có nút)
+# ══════════════════════════════════════════════════════════════════════════════
+class StatusBadge(QWidget):
+    def __init__(self, status: str, parent=None):
         super().__init__(parent)
-        self.cc_id = cc_id
-        self.setWindowTitle("Điểm Danh" if not cc_id else "Sửa Chấm Công")
-        self.resize(420, 380)
-        self.setStyleSheet(STYLE)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setStyleSheet("background:transparent;")
 
-        root = QVBoxLayout(self)
-        root.setContentsMargins(20, 20, 20, 20)
-        root.setSpacing(12)
+        color, bg, icon = STATUS_META.get(status, (TEXT_DIM, "#3E3E5540", "•"))
 
-        root.addWidget(_lbl("CHẤM CÔNG NHÂN VIÊN", "#3498DB", 15, True))
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(6, 0, 6, 0)
+        layout.setAlignment(Qt.AlignCenter)
 
-        form = QFormLayout(); form.setSpacing(10)
-
-        def _fl(t):
-            l = QLabel(t); l.setStyleSheet("color:#A1A1AA;"); return l
-
-        # Nhân viên
-        self.cb_nv = QComboBox()
-        self._nv_map = {}
-        s = get_session()
-        try:
-            nvs = s.query(NhanVien).order_by(NhanVien.ten_nv).all()
-            for nv in nvs:
-                self.cb_nv.addItem(f"{nv.ten_nv} ({nv.chuc_vu})", nv.id)
-                self._nv_map[nv.id] = nv.ten_nv
-        finally:
-            s.close()
-        if default_nv_id:
-            idx = self.cb_nv.findData(default_nv_id)
-            if idx >= 0: self.cb_nv.setCurrentIndex(idx)
-
-        # Ngày
-        self.de_ngay = QDateEdit(QDate.currentDate())
-        self.de_ngay.setCalendarPopup(True)
-        self.de_ngay.setDisplayFormat("dd/MM/yyyy")
-        if default_ngay:
-            self.de_ngay.setDate(QDate(default_ngay.year, default_ngay.month, default_ngay.day))
-
-        # Giờ vào / ra
-        self.te_vao = QTimeEdit(QTime(7, 0))
-        self.te_vao.setDisplayFormat("HH:mm")
-        self.te_ra  = QTimeEdit(QTime(17, 0))
-        self.te_ra.setDisplayFormat("HH:mm")
-
-        # Trạng thái
-        self.cb_tt = QComboBox()
-        self.cb_tt.addItems(["Co_mat", "Vang", "Tre"])
-
-        # Ghi chú
-        self.txt_note = QLineEdit()
-        self.txt_note.setPlaceholderText("Lý do vắng, ghi chú thêm...")
-
-        form.addRow(_fl("Nhân viên:"),   self.cb_nv)
-        form.addRow(_fl("Ngày:"),        self.de_ngay)
-        form.addRow(_fl("Giờ vào:"),     self.te_vao)
-        form.addRow(_fl("Giờ ra:"),      self.te_ra)
-        form.addRow(_fl("Trạng thái:"),  self.cb_tt)
-        form.addRow(_fl("Ghi chú:"),     self.txt_note)
-        root.addLayout(form)
-
-        # Kết nối: khi chọn Vắng → ẩn giờ
-        self.cb_tt.currentTextChanged.connect(self._on_tt_changed)
-
-        btn_save = _btn("💾 Lưu Chấm Công", "#27AE60", 44)
-        btn_save.clicked.connect(self._save)
-        root.addWidget(btn_save)
-
-        if cc_id:
-            self._load()
-
-    def _on_tt_changed(self, tt):
-        vang = (tt == "Vang")
-        self.te_vao.setEnabled(not vang)
-        self.te_ra.setEnabled(not vang)
-
-    def _load(self):
-        s = get_session()
-        cc = s.query(ChamCong).get(self.cc_id); s.close()
-        if not cc: return
-        idx = self.cb_nv.findData(cc.nhan_vien_id)
-        if idx >= 0: self.cb_nv.setCurrentIndex(idx)
-        self.de_ngay.setDate(QDate(cc.ngay.year, cc.ngay.month, cc.ngay.day))
-        if cc.gio_vao:
-            self.te_vao.setTime(QTime(cc.gio_vao.hour, cc.gio_vao.minute))
-        if cc.gio_ra:
-            self.te_ra.setTime(QTime(cc.gio_ra.hour, cc.gio_ra.minute))
-        self.cb_tt.setCurrentText(cc.trang_thai or "Co_mat")
-        self.txt_note.setText(cc.ghi_chu or "")
-
-    def _save(self):
-        nv_id = self.cb_nv.currentData()
-        qd    = self.de_ngay.date()
-        ngay  = date(qd.year(), qd.month(), qd.day())
-        tt    = self.cb_tt.currentText()
-
-        qvao = self.te_vao.time()
-        qra  = self.te_ra.time()
-        gio_vao = dtime(qvao.hour(), qvao.minute()) if tt != "Vang" else None
-        gio_ra  = dtime(qra.hour(),  qra.minute())  if tt != "Vang" else None
-
-        s = get_session()
-        try:
-            if self.cc_id:
-                cc = s.query(ChamCong).get(self.cc_id)
-            else:
-                # Kiểm tra đã chấm hôm nay chưa
-                exists = s.query(ChamCong).filter_by(
-                    nhan_vien_id=nv_id, ngay=ngay
-                ).first()
-                if exists:
-                    QMessageBox.warning(
-                        self, "Đã chấm",
-                        "Nhân viên này đã được chấm công ngày này!\n"
-                        "Hãy chọn bản ghi có sẵn để sửa."
-                    )
-                    return
-                cc = ChamCong(); s.add(cc)
-
-            cc.nhan_vien_id = nv_id
-            cc.ngay         = ngay
-            cc.gio_vao      = gio_vao
-            cc.gio_ra       = gio_ra
-            cc.trang_thai   = tt
-            cc.ghi_chu      = self.txt_note.text().strip() or None
-            s.commit()
-            self.accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Lỗi DB", str(e))
-        finally:
-            s.close()
+        lbl = QLabel(f"{icon}  {status}")
+        lbl.setStyleSheet(
+            f"background:{bg}; color:{color}; font-weight:bold; font-size:13px;"
+            f" border-radius:5px; padding:4px 10px; border:1px solid {color}88;"
+            f" letter-spacing:0.3px;"
+        )
+        lbl.setAlignment(Qt.AlignCenter)
+        layout.addWidget(lbl)
 
 
-# ═══════════════════════════════════════════════════════════════
-# DIALOG CHÍNH — QUẢN LÝ ĐIỂM DANH
-# ═══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# DIALOG CHÍNH
+# ══════════════════════════════════════════════════════════════════════════════
 class AttendanceDialog(QDialog):
+    """Bảng báo cáo điểm danh — chỉ xem, không thao tác check-in/out."""
+
+    C_NV     = 0
+    C_CV     = 1
+    C_CA     = 2
+    C_GIO    = 3
+    C_VAO    = 4
+    C_RA     = 5
+    C_DUR    = 6
+    C_STATUS = 7
+    C_NOTE   = 8
+    NCOLS    = 9
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("✅ Điểm Danh & Chấm Công")
-        self.resize(880, 580)
+        self.setWindowTitle("📋  Báo Cáo Điểm Danh")
+        self.resize(1200, 720)
         self.setStyleSheet(STYLE)
-
-        if not _MODELS_OK:
-            QVBoxLayout(self).addWidget(
-                _lbl("⚠️ Chưa có model ChamCong trong database/models.py.\n"
-                     "Hãy thêm bảng ChamCong và chạy lại migrate.", "#E74C3C", 14)
-            )
-            return
+        self._target = date.today()
+        self._rows: list[dict] = []
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(20, 20, 20, 16)
-        root.setSpacing(10)
+        root.setContentsMargins(20, 16, 20, 16)
+        root.setSpacing(12)
 
-        # ── Tiêu đề ──────────────────────────────────────────────
-        root.addWidget(_lbl("✅ ĐIỂM DANH & CHẤM CÔNG", "#2ECC71", 17, True))
+        # ══ HEADER ════════════════════════════════════════════════
+        hdr = QHBoxLayout()
+        hdr.setSpacing(0)
 
-        # ── Thanh lọc ────────────────────────────────────────────
-        bar = QHBoxLayout(); bar.setSpacing(10)
+        title_lbl = _lbl("📋  BÁO CÁO ĐIỂM DANH", ACCENT, 18, True)
+        hdr.addWidget(title_lbl)
+        hdr.addStretch()
 
-        bar.addWidget(_lbl("Ngày:"))
-        self.de_filter = QDateEdit(QDate.currentDate())
-        self.de_filter.setCalendarPopup(True)
-        self.de_filter.setDisplayFormat("dd/MM/yyyy")
-        self.de_filter.setFixedWidth(140)
-        self.de_filter.dateChanged.connect(self.load_data)
-        bar.addWidget(self.de_filter)
+        btn_refresh = _btn("🔄  Làm mới", ACCENT, 36)
+        btn_refresh.setFixedWidth(120)
+        btn_refresh.clicked.connect(self._load)
+        hdr.addWidget(btn_refresh)
 
-        bar.addWidget(_lbl("Nhân viên:"))
-        self.cb_nv_filter = QComboBox()
-        self.cb_nv_filter.setFixedWidth(200)
-        self.cb_nv_filter.addItem("-- Tất cả --", None)
-        self._load_nv_filter()
-        self.cb_nv_filter.currentIndexChanged.connect(self.load_data)
-        bar.addWidget(self.cb_nv_filter)
+        root.addLayout(hdr)
 
-        bar.addStretch()
+        # ── Đường kẻ ngang dưới header ───────────────────────────
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setStyleSheet(f"color:{BORDER}; background:{BORDER}; max-height:1px;")
+        root.addWidget(line)
 
-        btn_add   = _btn("➕ Chấm công", "#27AE60")
-        btn_edit  = _btn("✏️ Sửa",      "#2980B9")
-        btn_del   = _btn("🗑 Xóa",      "#C0392B")
-        btn_today = _btn("📅 Chấm nhanh hôm nay", "#8E44AD")
-
-        for b in [btn_add, btn_edit, btn_del, btn_today]:
-            b.setDefault(False); b.setAutoDefault(False)
-            bar.addWidget(b)
-
-        root.addLayout(bar)
-
-        # ── Bảng chấm công ───────────────────────────────────────
-        self.table = QTableWidget(0, 7)
-        self.table.setHorizontalHeaderLabels([
-            "Nhân Viên", "Chức Vụ", "Ngày", "Giờ Vào", "Giờ Ra", "Trạng Thái", "Ghi Chú"
-        ])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(6, QHeaderView.Stretch)
-        self.table.setColumnWidth(1, 100)
-        self.table.setColumnWidth(2, 100)
-        self.table.setColumnWidth(3, 80)
-        self.table.setColumnWidth(4, 80)
-        self.table.setColumnWidth(5, 90)
-        self.table.verticalHeader().setVisible(False)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        root.addWidget(self.table)
-
-        # ── Thanh thống kê ───────────────────────────────────────
-        self.lbl_stat = _lbl("", "#A1A1AA", 12)
-        root.addWidget(self.lbl_stat)
-
-        # Kết nối nút
-        btn_add.clicked.connect(self._add)
-        btn_edit.clicked.connect(self._edit)
-        btn_del.clicked.connect(self._delete)
-        btn_today.clicked.connect(self._quick_checkin_today)
-
-        self.load_data()
-
-    def _load_nv_filter(self):
-        s = get_session()
-        try:
-            nvs = s.query(NhanVien).order_by(NhanVien.ten_nv).all()
-            for nv in nvs:
-                self.cb_nv_filter.addItem(nv.ten_nv, nv.id)
-        finally:
-            s.close()
-
-    def load_data(self):
-        qd   = self.de_filter.date()
-        ngay = date(qd.year(), qd.month(), qd.day())
-        nv_id = self.cb_nv_filter.currentData()
-
-        s = get_session()
-        try:
-            q = s.query(ChamCong).filter(ChamCong.ngay == ngay)
-            if nv_id:
-                q = q.filter(ChamCong.nhan_vien_id == nv_id)
-            records = q.join(NhanVien).order_by(NhanVien.ten_nv).all()
-
-            self.table.setRowCount(0)
-            co_mat = vang = tre = 0
-            for cc in records:
-                r = self.table.rowCount()
-                self.table.insertRow(r)
-                nv = cc.nhan_vien
-
-                def _item(text, color=None):
-                    it = QTableWidgetItem(text)
-                    it.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                    if color:
-                        it.setForeground(QColor(color))
-                    return it
-
-                self.table.setItem(r, 0, _item(nv.ten_nv if nv else "?"))
-                self.table.setItem(r, 1, _item(nv.chuc_vu if nv else ""))
-                self.table.setItem(r, 2, _item(cc.ngay.strftime("%d/%m/%Y")))
-                self.table.setItem(r, 3, _item(cc.gio_vao.strftime("%H:%M") if cc.gio_vao else "--"))
-                self.table.setItem(r, 4, _item(cc.gio_ra.strftime("%H:%M")  if cc.gio_ra  else "--"))
-
-                tt_color = TT_COLOR.get(cc.trang_thai, "#BDC3C7")
-                tt_text  = {"Co_mat": "Có mặt", "Vang": "Vắng", "Tre": "Đi trễ"}.get(
-                    cc.trang_thai, cc.trang_thai
-                )
-                tt_item = _item(tt_text, tt_color)
-                tt_item.setData(Qt.UserRole, cc.id)
-                self.table.setItem(r, 5, tt_item)
-                self.table.setItem(r, 6, _item(cc.ghi_chu or ""))
-
-                if cc.trang_thai == "Co_mat": co_mat += 1
-                elif cc.trang_thai == "Vang":  vang  += 1
-                elif cc.trang_thai == "Tre":   tre   += 1
-
-            total = co_mat + vang + tre
-            self.lbl_stat.setText(
-                f"Tổng: {total} nhân viên  |  "
-                f"✅ Có mặt: {co_mat}  |  ❌ Vắng: {vang}  |  ⏰ Trễ: {tre}"
-            )
-        finally:
-            s.close()
-
-    def _selected_id(self):
-        row = self.table.currentRow()
-        if row < 0: return None
-        it = self.table.item(row, 5)
-        return it.data(Qt.UserRole) if it else None
-
-    def _add(self):
-        qd = self.de_filter.date()
-        ngay = date(qd.year(), qd.month(), qd.day())
-        if ChamCongForm(default_ngay=ngay, parent=self).exec():
-            self.load_data()
-
-    def _edit(self):
-        cc_id = self._selected_id()
-        if not cc_id:
-            QMessageBox.warning(self, "Chưa chọn", "Hãy chọn một bản ghi để sửa!"); return
-        if ChamCongForm(cc_id=cc_id, parent=self).exec():
-            self.load_data()
-
-    def _delete(self):
-        cc_id = self._selected_id()
-        if not cc_id:
-            QMessageBox.warning(self, "Chưa chọn", "Hãy chọn một bản ghi để xóa!"); return
-        if QMessageBox.question(
-            self, "Xác nhận", "Xóa bản ghi chấm công này?",
-            QMessageBox.Yes | QMessageBox.No
-        ) != QMessageBox.Yes:
-            return
-        s = get_session()
-        try:
-            cc = s.query(ChamCong).get(cc_id)
-            if cc: s.delete(cc); s.commit()
-        finally:
-            s.close()
-        self.load_data()
-
-    def _quick_checkin_today(self):
-        """Chấm nhanh toàn bộ nhân viên chưa có record hôm nay với mặc định Có mặt."""
-        qd   = self.de_filter.date()
-        ngay = date(qd.year(), qd.month(), qd.day())
-        s = get_session()
-        added = 0
-        try:
-            nvs = s.query(NhanVien).all()
-            for nv in nvs:
-                exists = s.query(ChamCong).filter_by(nhan_vien_id=nv.id, ngay=ngay).first()
-                if not exists:
-                    cc = ChamCong()
-                    cc.nhan_vien_id = nv.id
-                    cc.ngay         = ngay
-                    cc.gio_vao      = dtime(7, 0)
-                    cc.gio_ra       = dtime(17, 0)
-                    cc.trang_thai   = "Co_mat"
-                    s.add(cc)
-                    added += 1
-            s.commit()
-        finally:
-            s.close()
-
-        QMessageBox.information(
-            self, "Hoàn tất",
-            f"Đã chấm nhanh {added} nhân viên chưa có dữ liệu hôm nay.\n"
-            "Hãy sửa lại những ai vắng hoặc đến trễ."
+        # ══ TOOLBAR LỌC ═══════════════════════════════════════════
+        # Dùng QWidget + QHBoxLayout có background để trông như 1 thanh
+        filter_bar = QWidget()
+        filter_bar.setStyleSheet(
+            f"background:{BG_CARD}; border-radius:8px; border:1px solid {BORDER};"
         )
-        self.load_data()
+        filter_bar.setFixedHeight(46)
+        fb_layout = QHBoxLayout(filter_bar)
+        fb_layout.setContentsMargins(14, 0, 14, 0)
+        fb_layout.setSpacing(16)
+
+        def _filter_lbl(text: str) -> QLabel:
+            l = QLabel(text)
+            l.setStyleSheet(
+                f"color:{TEXT_DIM}; font-size:12px; font-weight:bold;"
+                f" background:transparent; border:none;"
+            )
+            return l
+
+        def _filter_sep() -> QFrame:
+            f = QFrame()
+            f.setFrameShape(QFrame.VLine)
+            f.setFixedHeight(22)
+            f.setStyleSheet(f"color:{BORDER}; background:{BORDER}; max-width:1px;")
+            return f
+
+        def _filter_combo(w: int = 148) -> QComboBox:
+            cb = QComboBox()
+            cb.setFixedWidth(w)
+            cb.setFixedHeight(30)
+            cb.setStyleSheet(
+                f"QComboBox {{ background:#1E1E2E; border:1px solid {BORDER};"
+                f" border-radius:5px; padding:0 8px; color:{TEXT}; font-size:13px; }}"
+                f"QComboBox:focus {{ border-color:{ACCENT}; }}"
+                f"QComboBox::drop-down {{ border:none; }}"
+                f"QComboBox QAbstractItemView {{ background:{BG_CARD}; color:{TEXT};"
+                f" selection-background-color:{ACCENT}; }}"
+            )
+            return cb
+
+        # Ngày
+        fb_layout.addWidget(_filter_lbl("Ngày:"))
+        self.de = QDateEdit()
+        self.de.setCalendarPopup(True)
+        self.de.setDate(QDate.currentDate())
+        self.de.setDisplayFormat("dd/MM/yyyy")
+        self.de.setFixedWidth(120)
+        self.de.setFixedHeight(30)
+        self.de.setStyleSheet(
+            f"QDateEdit {{ background:#1E1E2E; border:1px solid {BORDER};"
+            f" border-radius:5px; padding:0 8px; color:{TEXT}; font-size:13px; }}"
+            f"QDateEdit:focus {{ border-color:{ACCENT}; }}"
+        )
+        self.de.dateChanged.connect(self._on_date)
+        fb_layout.addWidget(self.de)
+
+        fb_layout.addWidget(_filter_sep())
+
+        # Ca
+        fb_layout.addWidget(_filter_lbl("Ca:"))
+        self.cb_ca = _filter_combo(148)
+        self.cb_ca.currentIndexChanged.connect(self._draw)
+        fb_layout.addWidget(self.cb_ca)
+
+        fb_layout.addWidget(_filter_sep())
+
+        # Trạng thái
+        fb_layout.addWidget(_filter_lbl("Trạng thái:"))
+        self.cb_status = _filter_combo(148)
+        self.cb_status.addItem("Tất cả", None)
+        for st in STATUS_META:
+            self.cb_status.addItem(st, st)
+        self.cb_status.currentIndexChanged.connect(self._draw)
+        fb_layout.addWidget(self.cb_status)
+
+        fb_layout.addStretch()
+
+        root.addWidget(filter_bar)
+
+        # ══ THỐNG KÊ — 7 thẻ đều nhau, kéo dài full width ════════
+        stat_row = QHBoxLayout()
+        stat_row.setSpacing(8)
+        self._stat_labels: dict[str, QLabel] = {}
+
+        stat_defs = [
+            ("Tổng ca",        "#FFFFFF", BG_CARD, BORDER),
+            ("Chưa đến",       "#FFFFFF", BG_CARD, BORDER),
+            ("Đang làm",       "#FFFFFF", BG_CARD, BORDER),
+            ("Đi trễ",         "#FFFFFF", BG_CARD, BORDER),
+            ("Đã hoàn thành",  "#FFFFFF", BG_CARD, BORDER),
+            ("Về sớm",         "#FFFFFF", BG_CARD, BORDER),
+            ("Vắng",           "#FFFFFF", BG_CARD, BORDER),
+        ]
+
+        for label, txt_color, bg_color, border_color in stat_defs:
+            card = QWidget()
+            card.setSizePolicy(
+                card.sizePolicy().horizontalPolicy(),
+                card.sizePolicy().verticalPolicy(),
+            )
+            from PySide6.QtWidgets import QSizePolicy as QSP
+            card.setSizePolicy(QSP.Expanding, QSP.Fixed)
+            card.setFixedHeight(62)
+            card.setStyleSheet(
+                f"background:{bg_color}; border-radius:8px;"
+                f" border:1px solid {border_color};"
+            )
+            cl = QVBoxLayout(card)
+            cl.setContentsMargins(8, 4, 8, 4)
+            cl.setSpacing(0)
+
+            num = QLabel("0")
+            num.setAlignment(Qt.AlignCenter)
+            num.setStyleSheet(
+                f"color:{txt_color}; font-size:22px; font-weight:bold;"
+                f" background:transparent; border:none;"
+            )
+            lbl = QLabel(label)
+            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setStyleSheet(
+                f"color:{txt_color}99; font-size:10px; font-weight:bold;"
+                f" background:transparent; border:none; letter-spacing:0.3px;"
+            )
+            cl.addWidget(num)
+            cl.addWidget(lbl)
+            stat_row.addWidget(card)
+            self._stat_labels[label] = num
+
+        root.addLayout(stat_row)
+
+        # ══ BẢNG ══════════════════════════════════════════════════
+        self.tbl = QTableWidget(0, self.NCOLS)
+        self.tbl.setHorizontalHeaderLabels([
+            "Nhân Viên", "Chức Vụ", "Ca", "Giờ Ca",
+            "Check-In", "Check-Out", "Giờ Làm",
+            "Trạng Thái", "Ghi Chú",
+        ])
+        hh = self.tbl.horizontalHeader()
+        # Nhân Viên: cố định nhỏ lại
+        hh.setSectionResizeMode(self.C_NV,     QHeaderView.Fixed)
+        self.tbl.setColumnWidth(self.C_NV,  170)
+        # Chức vụ: cố định
+        hh.setSectionResizeMode(self.C_CV,     QHeaderView.Fixed)
+        self.tbl.setColumnWidth(self.C_CV,   90)
+        # Ca: cố định
+        hh.setSectionResizeMode(self.C_CA,     QHeaderView.Fixed)
+        self.tbl.setColumnWidth(self.C_CA,   90)
+        # Giờ ca: cố định
+        hh.setSectionResizeMode(self.C_GIO,    QHeaderView.Fixed)
+        self.tbl.setColumnWidth(self.C_GIO,  130)
+        # Check-In / Check-Out / Giờ Làm: rộng hơn để chữ rõ
+        for col, w in [(self.C_VAO, 90), (self.C_RA, 90), (self.C_DUR, 75)]:
+            hh.setSectionResizeMode(col, QHeaderView.Fixed)
+            self.tbl.setColumnWidth(col, w)
+        # Trạng Thái: rộng hơn cho "Đã hoàn thành"
+        hh.setSectionResizeMode(self.C_STATUS, QHeaderView.Fixed)
+        self.tbl.setColumnWidth(self.C_STATUS, 150)
+        # Ghi chú: stretch lấy phần còn lại
+        hh.setSectionResizeMode(self.C_NOTE,   QHeaderView.Stretch)
+
+        self.tbl.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tbl.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tbl.verticalHeader().setVisible(False)
+        self.tbl.setAlternatingRowColors(True)
+        self.tbl.setShowGrid(True)
+        self.tbl.horizontalHeader().setMinimumSectionSize(60)
+        self.tbl.setStyleSheet(
+            STYLE +
+            f"QTableWidget {{ alternate-background-color:{BG_ALT}; }}"
+        )
+        root.addWidget(self.tbl, stretch=1)
+
+        # ══ FOOTER ════════════════════════════════════════════════
+        footer = QHBoxLayout()
+        footer.addStretch()
+        btn_close = _btn("✕  Đóng", "#555566", 36)
+        btn_close.setFixedWidth(100)
+        btn_close.clicked.connect(self.accept)
+        footer.addWidget(btn_close)
+        root.addLayout(footer)
+
+        # Auto-refresh mỗi 60 s
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._load)
+        self._timer.start(60_000)
+
+        self._load()
+
+    # ── Tải dữ liệu ─────────────────────────────────────────────
+    def _on_date(self, qd: QDate):
+        self._target = date(qd.year(), qd.month(), qd.day())
+        self._load()
+
+    def _load(self):
+        self._rows = _get_rows(self._target)
+        self._fill_ca_combo()
+        self._draw()
+
+    def _fill_ca_combo(self):
+        prev = self.cb_ca.currentData()
+        self.cb_ca.blockSignals(True)
+        self.cb_ca.clear()
+        self.cb_ca.addItem("Tất cả ca", None)
+        seen: list[str] = []
+        for r in self._rows:
+            if r["ten_ca"] not in seen:
+                seen.append(r["ten_ca"])
+                self.cb_ca.addItem(r["ten_ca"], r["ten_ca"])
+        idx = self.cb_ca.findData(prev)
+        self.cb_ca.setCurrentIndex(max(idx, 0))
+        self.cb_ca.blockSignals(False)
+
+    # ── Render bảng ─────────────────────────────────────────────
+    def _draw(self):
+        ca_f  = self.cb_ca.currentData()
+        st_f  = self.cb_status.currentData()
+
+        visible = [
+            r for r in self._rows
+            if (ca_f is None or r["ten_ca"] == ca_f)
+            and (st_f is None or r["status"] == st_f)
+        ]
+
+        self.tbl.setRowCount(0)
+
+        prev_ca = None
+        for i, r in enumerate(visible):
+            self.tbl.insertRow(i)
+            self.tbl.setRowHeight(i, 42)
+
+            # Nhóm ca: tô nền header-like khi chuyển ca
+            row_bg = None
+            if r["ten_ca"] != prev_ca:
+                prev_ca = r["ten_ca"]
+                row_bg = QColor(CA_COLOR.get(r["ten_ca"], ACCENT) + "18")
+
+            def _cell(text: str, align=Qt.AlignVCenter | Qt.AlignLeft,
+                      color: str | None = None, bold: bool = False) -> QTableWidgetItem:
+                it = QTableWidgetItem(text)
+                it.setTextAlignment(align)
+                if color:
+                    it.setForeground(QColor(color))
+                if bold:
+                    f = QFont("Segoe UI", 12, QFont.Bold)
+                    it.setFont(f)
+                if row_bg:
+                    it.setBackground(row_bg)
+                return it
+
+            center = Qt.AlignCenter
+
+            self.tbl.setItem(i, self.C_NV,  _cell(r["nv_ten"], bold=True))
+            self.tbl.setItem(i, self.C_CV,  _cell(r["nv_cv"],  color=TEXT_DIM))
+            self.tbl.setItem(i, self.C_CA,
+                             _cell(r["ten_ca"],
+                                   color=CA_COLOR.get(r["ten_ca"], ACCENT),
+                                   bold=True))
+            self.tbl.setItem(i, self.C_GIO,
+                             _cell(f"{r['gio_bd']} – {r['gio_kt']}", center, TEXT_DIM))
+
+            # Check-in
+            vao_it = _cell(_fmt_time(r["vao"]), center,
+                           GREEN if r["vao"] else TEXT_DIM)
+            if row_bg:
+                vao_it.setBackground(row_bg)
+            self.tbl.setItem(i, self.C_VAO, vao_it)
+
+            # Check-out
+            ra_it = _cell(_fmt_time(r["ra"]), center,
+                          ACCENT if r["ra"] else TEXT_DIM)
+            if row_bg:
+                ra_it.setBackground(row_bg)
+            self.tbl.setItem(i, self.C_RA, ra_it)
+
+            # Giờ làm thực tế
+            dur_it = _cell(_fmt_dur(r["vao"], r["ra"]), center,
+                           TEXT if r["vao"] and r["ra"] else TEXT_DIM)
+            if row_bg:
+                dur_it.setBackground(row_bg)
+            self.tbl.setItem(i, self.C_DUR, dur_it)
+
+            # Trạng thái — widget badge
+            badge = StatusBadge(r["status"])
+            self.tbl.setCellWidget(i, self.C_STATUS, badge)
+
+            # Ghi chú
+            note_it = _cell(r["note"], color=TEXT if r["note"] else TEXT_DIM)
+            if row_bg:
+                note_it.setBackground(row_bg)
+            self.tbl.setItem(i, self.C_NOTE, note_it)
+
+        self._update_stats(visible)
+
+    # ── Cập nhật thẻ thống kê ────────────────────────────────────
+    def _update_stats(self, rows: list[dict]):
+        counts: dict[str, int] = {k: 0 for k in STATUS_META}
+        for r in rows:
+            counts[r["status"]] = counts.get(r["status"], 0) + 1
+
+        # "Tổng ca" card
+        if "Tổng ca" in self._stat_labels:
+            self._stat_labels["Tổng ca"].setText(str(len(rows)))
+
+        # Các trạng thái — key trong stat_labels trùng tên STATUS_META
+        for k in STATUS_META:
+            if k in self._stat_labels:
+                self._stat_labels[k].setText(str(counts.get(k, 0)))

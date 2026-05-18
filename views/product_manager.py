@@ -284,9 +284,17 @@ class ProductManager(QDialog):
         )
         btn_delete.clicked.connect(self.toggle_status)
 
+        btn_xoa = QPushButton("❌ Xóa Món")
+        btn_xoa.setStyleSheet(
+            "background-color: #7F0000; color: white; font-weight: bold;"
+            " padding: 8px 16px; border-radius: 6px;"
+        )
+        btn_xoa.clicked.connect(self.delete_product)
+
         toolbar.addWidget(btn_add)
         toolbar.addWidget(btn_edit)
         toolbar.addWidget(btn_delete)
+        toolbar.addWidget(btn_xoa)
         toolbar.addStretch()
         layout.addLayout(toolbar)
 
@@ -424,5 +432,66 @@ class ProductManager(QDialog):
         except Exception as e:
             session.rollback()
             QMessageBox.critical(self, "Lỗi", str(e))
+        finally:
+            session.close()
+
+    def delete_product(self):
+        pid = self._selected_product_id()
+        if pid is None:
+            return
+
+        # Lấy tên để hiển thị xác nhận
+        session = get_session()
+        try:
+            sp = session.get(SanPham, pid)
+            ten = sp.ten_sp if sp else "?"
+        finally:
+            session.close()
+
+        confirm = QMessageBox(self)
+        confirm.setWindowTitle("Xác nhận xóa")
+        confirm.setIcon(QMessageBox.Warning)
+        confirm.setText(
+            f"<b>Xóa vĩnh viễn '{ten}'?</b><br><br>"
+            "<span style='color:#E74C3C;'>"
+            "Thao tác này không thể hoàn tác.<br>"
+            "Toàn bộ dữ liệu liên quan sẽ bị xóa."
+            "</span>"
+        )
+        confirm.setTextFormat(Qt.RichText)
+        confirm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm.setDefaultButton(QMessageBox.No)
+        confirm.button(QMessageBox.Yes).setText("Xóa vĩnh viễn")
+        confirm.button(QMessageBox.No).setText("Hủy")
+        confirm.setStyleSheet(
+            "QMessageBox { background-color: #1E1E2E; color: white; }"
+            "QLabel { color: white; }"
+            "QPushButton { background-color: #2D2D3F; color: white;"
+            " border-radius: 6px; padding: 6px 16px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #3E3E55; }"
+        )
+
+        if confirm.exec() != QMessageBox.Yes:
+            return
+
+        session = get_session()
+        try:
+            sp = session.get(SanPham, pid)
+            if not sp:
+                QMessageBox.warning(self, "Lỗi", "Không tìm thấy sản phẩm!"); return
+
+            # Xóa ảnh liên quan
+            for ext in ("jpg", "jpeg", "png", "webp"):
+                img_path = os.path.join(PRODUCT_IMAGE_DIR, f"{pid}.{ext}")
+                if os.path.exists(img_path):
+                    os.remove(img_path)
+
+            session.delete(sp)
+            session.commit()
+            QMessageBox.information(self, "Đã xóa", f"Đã xóa món '<b>{ten}</b>'.")
+            self.load_data()
+        except Exception as e:
+            session.rollback()
+            QMessageBox.critical(self, "Lỗi Database", str(e))
         finally:
             session.close()

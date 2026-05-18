@@ -398,25 +398,51 @@ class ChiTietHoaDon(Base):
 
 class ChamCong(Base):
     """
-    Bảng chấm công hàng ngày cho từng nhân viên.
+    Bảng chấm công — MỖI BẢN GHI = 1 CA của nhân viên trong ngày.
+    Một nhân viên có thể có nhiều bản ghi cùng ngày (nhiều ca).
 
     trang_thai:
-      'Co_mat'  – có mặt đúng giờ
-      'Tre'     – đi trễ
-      'Vang'    – vắng (nghỉ có phép / không phép)
+      'Chua_checkin' – ca được tạo, chưa check-in (do PhanCong hoặc hệ thống tạo sẵn)
+      'Dang_lam'     – đã check-in, chưa check-out
+      'Hoan_thanh'   – check-out đúng giờ / trong khung cho phép
+      'Di_tre'       – check-in sau giờ bắt đầu ca (không ân hạn)
+      'Ve_som'       – check-out sớm hơn (gio_ket_thuc - 15 phút)
+      'Vang_mat'     – không check-in (vắng)
+      'Tang_ca'      – check-out muộn hơn (gio_ket_thuc + 30 phút)
+      'Nghi_phep'    – nghỉ phép (đặt thủ công bởi quản lý)
+      'Khong_ca'     – admin/owner không có phân công, tự do
 
-    Bảng này độc lập với PhanCongCaLam — dùng để ghi nhận
-    thực tế có mặt (chấm công) thay vì kế hoạch phân công.
+    Quy tắc:
+      Check-in sớm ≤ 15 phút → Dang_lam (đúng giờ)
+      Check-in sau gio_bat_dau → Di_tre (ghi phut_tre)
+      Check-out sớm ≤ 15 phút → Hoan_thanh
+      Check-out sớm > 15 phút → Ve_som (ghi phut_ve_som)
+      Check-out muộn > 30 phút → Tang_ca (ghi phut_tang_ca)
     """
     __tablename__ = 'cham_cong'
 
-    id           = Column(Integer, primary_key=True, autoincrement=True)
-    nhan_vien_id = Column(Integer, ForeignKey('nhan_vien.id'), nullable=False)
-    ngay         = Column(Date, nullable=False)
-    gio_vao      = Column(Time, nullable=True)   # None khi vắng
-    gio_ra       = Column(Time, nullable=True)   # None khi vắng
-    trang_thai   = Column(String(50), default='Co_mat')
-    # 'Co_mat' | 'Tre' | 'Vang'
-    ghi_chu      = Column(String(300), nullable=True)
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    nhan_vien_id  = Column(Integer, ForeignKey('nhan_vien.id'), nullable=False)
+    ma_ca         = Column(Integer, ForeignKey('ca_lam_viec.id'), nullable=True)
+    # NULL = không có ca phân công (admin/owner)
+    ma_phien      = Column(Integer, ForeignKey('phien_lam_viec.id'), nullable=True)
 
-    nhan_vien = relationship("NhanVien", back_populates="cham_congs")
+    ngay          = Column(Date, nullable=False)
+
+    # Giờ kế hoạch (copy từ CaLamViec khi tạo để tránh JOIN sau này)
+    gio_bd_ca     = Column(Time, nullable=True)   # giờ bắt đầu ca kế hoạch
+    gio_kt_ca     = Column(Time, nullable=True)   # giờ kết thúc ca kế hoạch
+
+    # Thực tế
+    thoi_gian_vao = Column(DateTime, nullable=True)   # datetime check-in thực tế
+    thoi_gian_ra  = Column(DateTime, nullable=True)   # datetime check-out thực tế
+
+    trang_thai    = Column(String(50), default='Chua_checkin')
+    phut_tre      = Column(Integer, default=0)   # số phút đi trễ
+    phut_ve_som   = Column(Integer, default=0)   # số phút về sớm
+    phut_tang_ca  = Column(Integer, default=0)   # số phút tăng ca
+    ghi_chu       = Column(String(300), nullable=True)
+
+    nhan_vien   = relationship("NhanVien",     back_populates="cham_congs")
+    ca_lam_viec = relationship("CaLamViec")
+    phien       = relationship("PhienLamViec")

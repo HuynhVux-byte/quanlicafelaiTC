@@ -194,7 +194,8 @@ class EmployeeForm(QDialog):
 
         self.txt_name  = QLineEdit();  self.txt_name.setPlaceholderText("Nguyễn Văn A")
         self.txt_user  = QLineEdit();  self.txt_user.setPlaceholderText("nhanvien01")
-        self.txt_sdt   = QLineEdit();  self.txt_sdt.setPlaceholderText("0901234567")
+        from utils.phone_validator import PhoneLineEdit
+        self.txt_sdt   = PhoneLineEdit()
         self.txt_email = QLineEdit();  self.txt_email.setPlaceholderText("nv@quancafe.vn")
         self.txt_luong = QLineEdit();  self.txt_luong.setPlaceholderText("5000000")
 
@@ -277,6 +278,14 @@ class EmployeeForm(QDialog):
             QMessageBox.warning(self, "Thiếu thông tin", "Họ tên và tên đăng nhập là bắt buộc!")
             return
 
+        if not self.txt_sdt.is_valid():
+            QMessageBox.warning(self, "SĐT không hợp lệ",
+                "Số điện thoại không hợp lệ!\n"
+                "Phải gồm đúng 10 chữ số và đúng đầu số nhà mạng\n"
+                "(03x, 05x, 07x, 08x, 09x).")
+            self.txt_sdt.setFocus()
+            return
+
         luong = 0.0
         try:
             luong = float(luong_txt) if luong_txt else 0.0
@@ -345,34 +354,69 @@ class EmployeeForm(QDialog):
 # DIALOG: ĐỔI MẬT KHẨU
 # ═══════════════════════════════════════════════════════════════════════════════
 class ChangePasswordDialog(QDialog):
+    """
+    Đổi mật khẩu nhân viên.
+    - Admin đổi cho người khác: không cần nhập MK cũ.
+    - Nhân viên tự đổi (actor_id == emp_id): phải nhập MK cũ để xác thực.
+    - Sau khi đổi thành công: gửi email xác nhận nếu nhân viên có email.
+    """
     def __init__(self, emp_id: int, actor_id: int = None, parent=None):
         super().__init__(parent)
-        self.emp_id   = emp_id
-        self.actor_id = actor_id
+        self.emp_id    = emp_id
+        self.actor_id  = actor_id
+        self._is_self  = (actor_id is not None and actor_id == emp_id)
+
         self.setWindowTitle("Đổi Mật Khẩu")
-        self.resize(360, 220)
+        self.resize(380, self._is_self and 280 or 240)
         self.setStyleSheet(STYLE_BASE)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(12)
 
+        # Tiêu đề
+        title = QLabel("🔑 ĐỔI MẬT KHẨU")
+        title.setStyleSheet("font-size: 15px; font-weight: bold; color: #E67E22;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
         form = QFormLayout()
+        form.setSpacing(10)
 
         def _lbl(t):
-            l = QLabel(t); l.setStyleSheet("color: #A1A1AA;"); return l
+            l = QLabel(t)
+            l.setStyleSheet("color: #A1A1AA;")
+            return l
 
-        self.txt_new  = QLineEdit(); self.txt_new.setEchoMode(QLineEdit.Password)
-        self.txt_new.setPlaceholderText("Mật khẩu mới")
-        self.txt_conf = QLineEdit(); self.txt_conf.setEchoMode(QLineEdit.Password)
+        # Ô mật khẩu cũ — chỉ hiện khi tự đổi
+        self.txt_old = None
+        if self._is_self:
+            self.txt_old = QLineEdit()
+            self.txt_old.setEchoMode(QLineEdit.Password)
+            self.txt_old.setPlaceholderText("Nhập mật khẩu hiện tại")
+            form.addRow(_lbl("Mật khẩu cũ:"), self.txt_old)
+
+        self.txt_new  = QLineEdit()
+        self.txt_new.setEchoMode(QLineEdit.Password)
+        self.txt_new.setPlaceholderText("Mật khẩu mới (tối thiểu 4 ký tự)")
+
+        self.txt_conf = QLineEdit()
+        self.txt_conf.setEchoMode(QLineEdit.Password)
         self.txt_conf.setPlaceholderText("Nhập lại mật khẩu mới")
 
-        form.addRow(_lbl("Mật khẩu mới:"),    self.txt_new)
-        form.addRow(_lbl("Xác nhận lại:"),     self.txt_conf)
+        form.addRow(_lbl("Mật khẩu mới:"), self.txt_new)
+        form.addRow(_lbl("Xác nhận lại:"), self.txt_conf)
         layout.addLayout(form)
 
+        # Checkbox gửi email xác nhận
+        from PySide6.QtWidgets import QCheckBox
+        self.chk_email = QCheckBox("📧 Gửi email xác nhận cho nhân viên")
+        self.chk_email.setStyleSheet("color: #A1A1AA; font-size: 12px;")
+        self.chk_email.setChecked(True)
+        layout.addWidget(self.chk_email)
+
         btn = QPushButton("🔑  Cập Nhật Mật Khẩu")
-        btn.setMinimumHeight(42)
+        btn.setMinimumHeight(44)
         btn.setStyleSheet(
             "background-color: #E67E22; color: white; font-weight: bold;"
             " border-radius: 8px; font-size: 14px;"
@@ -380,30 +424,76 @@ class ChangePasswordDialog(QDialog):
         btn.clicked.connect(self._save)
         layout.addWidget(btn)
 
+        # Enter trong ô cuối cũng submit
+        self.txt_conf.returnPressed.connect(self._save)
+
     def _save(self):
         new  = self.txt_new.text().strip()
         conf = self.txt_conf.text().strip()
+
         if not new:
-            QMessageBox.warning(self, "Lỗi", "Mật khẩu không được trống!"); return
+            QMessageBox.warning(self, "Lỗi", "Mật khẩu không được trống!")
+            return
         if new != conf:
-            QMessageBox.warning(self, "Không khớp", "Hai mật khẩu không giống nhau!"); return
+            QMessageBox.warning(self, "Không khớp", "Hai mật khẩu không giống nhau!")
+            return
         if len(new) < 4:
-            QMessageBox.warning(self, "Quá ngắn", "Mật khẩu tối thiểu 4 ký tự!"); return
+            QMessageBox.warning(self, "Quá ngắn", "Mật khẩu tối thiểu 4 ký tự!")
+            return
 
         session = get_session()
         try:
             emp = session.query(NhanVien).get(self.emp_id)
-            if not emp: return
-            old_user = emp.ten_dang_nhap
+            if not emp:
+                QMessageBox.critical(self, "Lỗi", "Không tìm thấy nhân viên!")
+                return
+
+            # Xác thực MK cũ khi nhân viên tự đổi
+            if self._is_self and self.txt_old:
+                old = self.txt_old.text().strip()
+                if emp.mat_khau != old:
+                    QMessageBox.warning(self, "Sai mật khẩu",
+                                        "Mật khẩu cũ không đúng!")
+                    self.txt_old.clear()
+                    self.txt_old.setFocus()
+                    return
+
+            old_user  = emp.ten_dang_nhap
+            ten_nv    = emp.ten_nv
+            email_nv  = emp.email
             emp.mat_khau = new
             session.commit()
+
             if self.actor_id:
                 ghi_nhat_ky(self.actor_id, "Đổi mật khẩu",
                             f"Tài khoản: {old_user}")
-            QMessageBox.information(self, "Thành công", "Đã cập nhật mật khẩu!")
+
+            # Gửi email xác nhận nếu được chọn và có email
+            if self.chk_email.isChecked() and email_nv:
+                try:
+                    from utils.email_helper import send_change_password_confirm
+                    ok_send, err = send_change_password_confirm(email_nv, ten_nv)
+                    if not ok_send:
+                        QMessageBox.warning(
+                            self, "⚠️ Đổi MK thành công nhưng gửi email thất bại",
+                            f"Mật khẩu đã được cập nhật.\n\n"
+                            f"Không gửi được email xác nhận:\n{err}"
+                        )
+                        self.accept()
+                        return
+                except Exception as e:
+                    pass  # lỗi email không làm hỏng chức năng chính
+
+            QMessageBox.information(
+                self, "✅ Thành công",
+                f"Đã cập nhật mật khẩu cho {ten_nv}!"
+                + (f"\n📧 Email xác nhận đã gửi đến {email_nv}"
+                   if self.chk_email.isChecked() and email_nv else "")
+            )
             self.accept()
+
         except Exception as e:
-            QMessageBox.critical(self, "Lỗi", str(e))
+            QMessageBox.critical(self, "Lỗi DB", str(e))
         finally:
             session.close()
 

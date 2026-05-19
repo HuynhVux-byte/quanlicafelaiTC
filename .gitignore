@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+session.json
+cafee_pos.db
+temp_repo/

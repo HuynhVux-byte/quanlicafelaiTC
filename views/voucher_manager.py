@@ -33,31 +33,31 @@ from controllers.loyalty_controller import (
 )
 
 # ── Màu sắc ──────────────────────────────────────────────────────
-C_BG     = "#1A1A2E"
-C_PANEL  = "#252540"
-C_CARD   = "#2E2E50"
-C_BORDER = "#333360"
+C_BG     = "#FFFFFF"
+C_PANEL  = "#F0F2F5"
+C_CARD   = "#F0F2F5"
+C_BORDER = "#CCD0D5"
 C_ACCENT = "#9B59B6"
 C_GREEN  = "#27AE60"
 C_ORANGE = "#E67E22"
 C_RED    = "#E74C3C"
 C_YELLOW = "#F1C40F"
 C_BLUE   = "#3498DB"
-C_TEXT   = "#E8E8F0"
-C_MUTED  = "#7070A0"
+C_TEXT   = "#1C1E21"
+C_MUTED  = "#606770"
 
 STYLE = f"""
 QDialog, QWidget   {{ background:{C_BG}; color:{C_TEXT}; }}
 QTabWidget::pane   {{ border:none; background:{C_BG}; }}
 QTabBar::tab       {{ background:{C_PANEL}; color:{C_MUTED}; padding:10px 22px;
     border-radius:6px 6px 0 0; font-weight:bold; font-size:13px; }}
-QTabBar::tab:selected {{ background:{C_ACCENT}; color:white; }}
-QTabBar::tab:hover    {{ background:{C_CARD}; color:white; }}
+QTabBar::tab:selected {{ background:{C_ACCENT}; color: #1C1E21; }}
+QTabBar::tab:hover    {{ background:{C_CARD}; color: #1C1E21; }}
 QFrame      {{ background:{C_PANEL}; border-radius:10px; border:none; }}
 QTableWidget {{ background:{C_CARD}; border:none; border-radius:8px;
     gridline-color:{C_BORDER}; color:{C_TEXT}; font-size:13px; }}
 QTableWidget::item {{ padding:8px 6px; border-bottom:1px solid {C_BORDER}; }}
-QTableWidget::item:selected {{ background:{C_ACCENT}; color:white; }}
+QTableWidget::item:selected {{ background:{C_ACCENT}; color: #1C1E21; }}
 QHeaderView::section {{ background:{C_PANEL}; color:{C_MUTED}; padding:9px 6px;
     border:none; font-weight:bold; font-size:12px;
     border-bottom:2px solid {C_BORDER}; }}
@@ -92,7 +92,7 @@ def _btn(text, color=C_ACCENT, h=36):
     b.setMinimumHeight(h)
     b.setCursor(Qt.PointingHandCursor)
     b.setStyleSheet(
-        f"QPushButton{{background:{color};color:white;font-weight:bold;"
+        f"QPushButton{{background:{color};color: #1C1E21;font-weight:bold;"
         f"border-radius:8px;font-size:13px;padding:0 14px;border:none;}}"
         f"QPushButton:hover{{background:{color}CC;}}"
         f"QPushButton:pressed{{background:{color}88;}}"
@@ -576,7 +576,7 @@ class _TabDoiDiem(QWidget):
             # Nút đổi
             btn = _btn("Đổi ngay", C_ACCENT, 36)
             btn.setFixedWidth(100)
-            btn.clicked.connect(lambda _, idx=g["idx"]: self._doi_diem(idx))
+            btn.clicked.connect(lambda checked=False, idx=g["idx"]: self._doi_diem(idx))
             lay.addWidget(btn)
 
             self.cards_lay.addWidget(card)
@@ -672,7 +672,7 @@ class VoucherManagerDialog(QDialog):
         hdr = QHBoxLayout()
         hdr.addWidget(_lbl("🎫  VOUCHER & ĐIỂM THƯỞNG", C_ACCENT, 18, True))
         hdr.addStretch()
-        btn_close = _btn("✖ Đóng", "#555577", 36)
+        btn_close = _btn("✖ Đóng", "#CCD0D5", 36)
         btn_close.setFixedWidth(90)
         btn_close.clicked.connect(self.accept)
         hdr.addWidget(btn_close)

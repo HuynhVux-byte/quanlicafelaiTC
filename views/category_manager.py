@@ -21,7 +21,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 
 from database.db_config import get_session
-from database.models import SanPham
+from database.models import SanPham, DanhMucSanPham
 
 # ── Phân loại mặc định gợi ý ─────────────────────────────────────────────────
 DEFAULT_CATEGORIES = [
@@ -30,26 +30,26 @@ DEFAULT_CATEGORIES = [
 ]
 
 STYLE = """
-QDialog, QWidget { background-color: #1E1E2E; color: white; }
+QDialog, QWidget { background-color: #FFFFFF; color: #1C1E21; }
 QTableWidget {
-    background: #2D2D3F; border: none; border-radius: 8px;
-    gridline-color: #3E3E55; color: white; font-size: 13px;
+    background: #F0F2F5; border: none; border-radius: 8px;
+    gridline-color: #CCD0D5; color: #1C1E21; font-size: 13px;
 }
-QTableWidget::item { padding: 7px; border-bottom: 1px solid #3E3E55; }
+QTableWidget::item { padding: 7px; border-bottom: 1px solid #CCD0D5; }
 QTableWidget::item:selected { background: #3498DB; }
 QHeaderView::section {
-    background: #1A1A24; color: #A1A1AA;
+    background: #E4E6EB; color: #606770;
     padding: 9px; border: none; font-weight: bold;
 }
 QLineEdit {
-    background: #2D2D3F; border: 1px solid #3E3E55;
-    border-radius: 6px; padding: 6px 10px; color: white; font-size: 13px;
+    background: #F0F2F5; border: 1px solid #CCD0D5;
+    border-radius: 6px; padding: 6px 10px; color: #1C1E21; font-size: 13px;
 }
 QLineEdit:focus { border-color: #3498DB; }
-QScrollBar:vertical { background: #1A1A24; width: 7px; border-radius: 4px; }
-QScrollBar::handle:vertical { background: #3E3E55; border-radius: 4px; }
+QScrollBar:vertical { background: #E4E6EB; width: 7px; border-radius: 4px; }
+QScrollBar::handle:vertical { background: #CCD0D5; border-radius: 4px; }
 QFrame#card {
-    background: #2D2D3F; border: 1px solid #3E3E55; border-radius: 10px;
+    background: #F0F2F5; border: 1px solid #CCD0D5; border-radius: 10px;
 }
 """
 
@@ -58,7 +58,7 @@ def _btn(text: str, color: str, min_h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(min_h)
     b.setStyleSheet(
-        f"background:{color}; color:white; font-weight:bold;"
+        f"background:{color}; color: #1C1E21; font-weight:bold;"
         f" border-radius:6px; font-size:12px; padding:0 12px;"
     )
     return b
@@ -98,23 +98,23 @@ class CategoryNameDialog(QDialog):
 
         # Gợi ý (chỉ hiện khi thêm mới)
         if not self.is_edit:
-            root.addWidget(_lbl("Gợi ý nhanh:", "#A1A1AA", 12))
+            root.addWidget(_lbl("Gợi ý nhanh:", "#606770", 12))
             suggest_layout = QHBoxLayout()
             suggest_layout.setSpacing(6)
             for cat in DEFAULT_CATEGORIES:
                 btn_s = QPushButton(cat)
                 btn_s.setFixedHeight(28)
                 btn_s.setStyleSheet(
-                    "background:#2D2D3F; color:#A1A1AA; border:1px solid #3E3E55;"
+                    "background:#F0F2F5; color:#606770; border:1px solid #CCD0D5;"
                     " border-radius:4px; font-size:11px; padding:0 8px;"
                 )
-                btn_s.clicked.connect(lambda _, c=cat: self.txt_name.setText(c))
+                btn_s.clicked.connect(lambda checked=False, c=cat: self.txt_name.setText(c))
                 suggest_layout.addWidget(btn_s)
             suggest_layout.addStretch()
             root.addLayout(suggest_layout)
 
         # Ô nhập tên
-        lbl_input = _lbl("Tên phân loại *:", "#A1A1AA", 12)
+        lbl_input = _lbl("Tên phân loại *:", "#606770", 12)
         root.addWidget(lbl_input)
         self.txt_name = QLineEdit()
         self.txt_name.setPlaceholderText("VD: Cà Phê, Trà Sữa, Đồ Ăn Nhẹ…")
@@ -173,11 +173,11 @@ class CategoryManagerDialog(QDialog):
         # ── Splitter: trái (danh sách loại) | phải (sản phẩm) ───
         splitter = QSplitter(Qt.Horizontal)
         splitter.setHandleWidth(2)
-        splitter.setStyleSheet("QSplitter::handle { background: #3E3E55; }")
+        splitter.setStyleSheet("QSplitter::handle { background: #CCD0D5; }")
 
         # ── Panel trái ───────────────────────────────────────────
         left = QWidget()
-        left.setStyleSheet("background:#1A1A24; border-radius:10px;")
+        left.setStyleSheet("background:#E4E6EB; border-radius:10px;")
         lv = QVBoxLayout(left)
         lv.setContentsMargins(10, 10, 10, 10)
         lv.setSpacing(8)
@@ -221,12 +221,12 @@ class CategoryManagerDialog(QDialog):
 
         # ── Panel phải ───────────────────────────────────────────
         right = QWidget()
-        right.setStyleSheet("background:#1A1A24; border-radius:10px;")
+        right.setStyleSheet("background:#E4E6EB; border-radius:10px;")
         rv = QVBoxLayout(right)
         rv.setContentsMargins(10, 10, 10, 10)
         rv.setSpacing(8)
 
-        self.lbl_sp_title = _lbl("Chọn phân loại để xem sản phẩm", "#A1A1AA", 13, True)
+        self.lbl_sp_title = _lbl("Chọn phân loại để xem sản phẩm", "#606770", 13, True)
         rv.addWidget(self.lbl_sp_title)
 
         self.tbl_sp = QTableWidget(0, 4)
@@ -242,7 +242,7 @@ class CategoryManagerDialog(QDialog):
         rv.addWidget(self.tbl_sp)
 
         # Thống kê nhanh
-        self.lbl_stat = _lbl("", "#A1A1AA", 12)
+        self.lbl_stat = _lbl("", "#606770", 12)
         rv.addWidget(self.lbl_stat)
 
         splitter.addWidget(right)
@@ -261,24 +261,36 @@ class CategoryManagerDialog(QDialog):
     # Load dữ liệu
     # ──────────────────────────────────────────────────────────────
     def _load_cats(self, keep_selection: str | None = None):
-        """Đọc danh sách phân loại từ DB (group by danh_muc trong SanPham)."""
+        """Đọc danh sách phân loại từ bảng DanhMucSanPham và đếm sản phẩm."""
         s = get_session()
         try:
+            danh_mucs = s.query(DanhMucSanPham).all()
             all_sp = s.query(SanPham).all()
         finally:
             s.close()
 
-        # Nhóm theo danh_muc
-        cat_map: dict[str, dict] = {}
+        # Đếm số lượng sản phẩm cho mỗi danh mục
+        cat_counts = {}
         for sp in all_sp:
             cat = (sp.danh_muc or "Chưa phân loại").strip()
-            if cat not in cat_map:
-                cat_map[cat] = {"name": cat, "total": 0, "active": 0}
-            cat_map[cat]["total"] += 1
+            if cat not in cat_counts:
+                cat_counts[cat] = {"total": 0, "active": 0}
+            cat_counts[cat]["total"] += 1
             if sp.trang_thai == "Đang bán":
-                cat_map[cat]["active"] += 1
+                cat_counts[cat]["active"] += 1
 
-        self._all_cats = sorted(cat_map.values(), key=lambda x: x["name"])
+        self._all_cats = []
+        for dm in danh_mucs:
+            name = dm.ten_danh_muc
+            counts = cat_counts.get(name, {"total": 0, "active": 0})
+            self._all_cats.append({
+                "id": dm.id,
+                "name": name,
+                "total": counts["total"],
+                "active": counts["active"]
+            })
+
+        self._all_cats = sorted(self._all_cats, key=lambda x: x["name"])
         self._fill_table(self._all_cats)
 
         # Khôi phục lại dòng đã chọn
@@ -298,7 +310,7 @@ class CategoryManagerDialog(QDialog):
 
             tot_it = QTableWidgetItem(str(c["total"]))
             tot_it.setTextAlignment(Qt.AlignCenter)
-            tot_it.setForeground(QColor("#A1A1AA"))
+            tot_it.setForeground(QColor("#606770"))
             self.tbl_cat.setItem(i, 1, tot_it)
 
             act_it = QTableWidgetItem(str(c["active"]))
@@ -350,7 +362,7 @@ class CategoryManagerDialog(QDialog):
             self.tbl_sp.insertRow(i)
             id_it = QTableWidgetItem(str(r["id"]))
             id_it.setTextAlignment(Qt.AlignCenter)
-            id_it.setForeground(QColor("#A1A1AA"))
+            id_it.setForeground(QColor("#606770"))
             self.tbl_sp.setItem(i, 0, id_it)
             self.tbl_sp.setItem(i, 1, QTableWidgetItem(r["ten"] or ""))
 
@@ -396,26 +408,23 @@ class CategoryManagerDialog(QDialog):
         if not new_name:
             return
 
-        # Phân loại chưa có sản phẩm nào — chỉ cần ghi nhận bằng cách
-        # tạo placeholder hoặc thông báo thành công. Thực ra danh mục tồn tại
-        # khi có ít nhất 1 SP gán vào. Ta lưu vào bảng riêng nếu có, còn
-        # không thì thông báo để user dùng khi tạo sản phẩm.
-        #
-        # Kiểm tra xem model có bảng DanhMucSanPham không; nếu không thì
-        # lưu vào settings JSON.
+        # Lưu vào bảng DanhMucSanPham
+        s = get_session()
         try:
-            from database.models import DanhMucSanPham  # type: ignore
-            s = get_session()
-            try:
-                exists = s.query(DanhMucSanPham).filter_by(ten_danh_muc=new_name).first()
-                if not exists:
-                    dm = DanhMucSanPham(ten_danh_muc=new_name)
-                    s.add(dm); s.commit()
-            finally:
-                s.close()
-        except ImportError:
-            # Không có bảng riêng — lưu vào file JSON đơn giản
-            self._save_extra_category(new_name)
+            exists = s.query(DanhMucSanPham).filter_by(ten_danh_muc=new_name).first()
+            if not exists:
+                dm = DanhMucSanPham(ten_danh_muc=new_name)
+                s.add(dm)
+                s.commit()
+            else:
+                QMessageBox.warning(self, "Trùng lặp", f"Phân loại '{new_name}' đã tồn tại!")
+                return
+        except Exception as e:
+            s.rollback()
+            QMessageBox.critical(self, "Lỗi DB", str(e))
+            return
+        finally:
+            s.close()
 
         QMessageBox.information(
             self, "Đã thêm",
@@ -444,9 +453,13 @@ class CategoryManagerDialog(QDialog):
         if not new_name or new_name == old_name:
             return
 
-        # Đổi tên trên toàn bộ sản phẩm
+        # Đổi tên trong DanhMucSanPham và trên toàn bộ sản phẩm
         s = get_session()
         try:
+            dm = s.query(DanhMucSanPham).filter_by(ten_danh_muc=old_name).first()
+            if dm:
+                dm.ten_danh_muc = new_name
+            
             updated = (
                 s.query(SanPham)
                 .filter(SanPham.danh_muc == old_name)
@@ -511,35 +524,22 @@ class CategoryManagerDialog(QDialog):
                 f"✅ Đã xóa phân loại '<b>{name}</b>'.<br>"
                 f"{count} sản phẩm đã chuyển sang '<b>Khác</b>'."
             )
-        else:
-            confirm = QMessageBox.question(
-                self, "Xác nhận xóa",
-                f"Xóa phân loại '<b>{name}</b>'? (Không có sản phẩm nào dùng loại này)",
-                QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
-            )
-            if confirm != QMessageBox.Yes:
-                return
-            QMessageBox.information(self, "Đã xóa", f"✅ Đã xóa phân loại '<b>{name}</b>'.")
+        # Nếu không còn sản phẩm hoặc đã chuyển sản phẩm sang 'Khác' thành công
+        s = get_session()
+        try:
+            dm = s.query(DanhMucSanPham).filter_by(ten_danh_muc=name).first()
+            if dm:
+                s.delete(dm)
+                s.commit()
+                if count == 0:
+                    QMessageBox.information(self, "Đã xóa", f"✅ Đã xóa phân loại '<b>{name}</b>'.")
+        except Exception as e:
+            s.rollback()
+            QMessageBox.critical(self, "Lỗi DB", str(e))
+        finally:
+            s.close()
 
         self.tbl_sp.setRowCount(0)
         self.lbl_sp_title.setText("Chọn phân loại để xem sản phẩm")
         self.lbl_stat.setText("")
         self._load_cats()
-
-    # ──────────────────────────────────────────────────────────────
-    # Lưu phân loại mới vào file JSON (fallback khi không có bảng DB)
-    # ──────────────────────────────────────────────────────────────
-    @staticmethod
-    def _save_extra_category(name: str):
-        import json, os
-        path = "data/extra_categories.json"
-        os.makedirs("data", exist_ok=True)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                cats: list = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            cats = []
-        if name not in cats:
-            cats.append(name)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(cats, f, ensure_ascii=False, indent=2)

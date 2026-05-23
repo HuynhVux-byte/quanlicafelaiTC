@@ -33,17 +33,17 @@ CHECKIN_EARLY_MIN  = 15   # phút — cho phép vào sớm trước giờ ca
 CHECKOUT_EARLY_MIN = 15   # phút — cho phép ra sớm trước giờ kết thúc
 
 # ── Màu ──────────────────────────────────────────────────────────────────────
-BG       = "#1E1E2E"
-BG_CARD  = "#2D2D3F"
-BG_ALT   = "#252535"
+BG       = "#FFFFFF"
+BG_CARD  = "#F0F2F5"
+BG_ALT   = "#F0F2F5"
 ACCENT   = "#3498DB"
 GREEN    = "#27AE60"
 ORANGE   = "#E67E22"
 RED      = "#E74C3C"
 YELLOW   = "#F1C40F"
-TEXT     = "#ECF0F1"
-TEXT_DIM = "#A1A1AA"
-BORDER   = "#3E3E55"
+TEXT     = "#1C1E21"
+TEXT_DIM = "#606770"
+BORDER   = "#CCD0D5"
 
 CA_COLOR = {
     "Ca Sáng":  "#F39C12",
@@ -53,7 +53,7 @@ CA_COLOR = {
 
 STATUS_META = {
     # tên               màu chữ    màu nền badge    icon
-    "Chưa đến":      ("#C8C8D4", "#4A4A6040",    "⏳"),
+    "Chưa đến":      ("#1C1E21", "#CCD0D540",    "⏳"),
     "Đang làm":      ("#00FF88", "#00C86840",    "🟢"),
     "Đi trễ":        ("#FFB347", "#FF8C0040",    "⚠️"),
     "Đã hoàn thành": ("#4FC3F7", "#0288D140",    "✅"),
@@ -66,12 +66,12 @@ QDialog, QWidget  {{ background:{BG}; color:{TEXT}; font-family:'Segoe UI'; }}
 QLabel            {{ background:transparent; }}
 QTableWidget {{
     background:{BG_CARD}; border:none; border-radius:10px;
-    gridline-color:{BORDER}; color:#ECF0F1; font-size:13px;
+    gridline-color:{BORDER}; color:#1C1E21; font-size:13px;
 }}
 QTableWidget::item          {{ padding:7px 8px; border-bottom:1px solid {BORDER}; }}
-QTableWidget::item:selected {{ background:{ACCENT}44; color:white; }}
+QTableWidget::item:selected {{ background:{ACCENT}44; color: #1C1E21; }}
 QHeaderView::section {{
-    background:{BG_ALT}; color:#FFFFFF; padding:9px 8px;
+    background:{BG_ALT}; color: #1C1E21; padding:9px 8px;
     border:none; font-weight:bold; font-size:13px; letter-spacing:0.5px;
 }}
 QDateEdit, QComboBox {{
@@ -86,7 +86,7 @@ QComboBox QAbstractItemView {{
 }}
 QPushButton {{
     border-radius:6px; font-weight:bold; font-size:13px;
-    color:white; padding:6px 16px;
+    color: #1C1E21; padding:6px 16px;
 }}
 QScrollBar:vertical   {{ background:{BG_ALT}; width:7px; border-radius:4px; }}
 QScrollBar::handle:vertical {{ background:{BORDER}; border-radius:4px; min-height:20px; }}
@@ -98,7 +98,7 @@ def _btn(text: str, color: str, h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"background:{color}; color:white; font-weight:bold;"
+        f"background:{color}; color: #1C1E21; font-weight:bold;"
         f" border-radius:6px; font-size:13px; padding:0 14px;"
     )
     return b
@@ -353,7 +353,7 @@ class StatusBadge(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet("background:transparent;")
 
-        color, bg, icon = STATUS_META.get(status, (TEXT_DIM, "#3E3E5540", "•"))
+        color, bg, icon = STATUS_META.get(status, (TEXT_DIM, "#CCD0D540", "•"))
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(6, 0, 6, 0)
@@ -450,7 +450,7 @@ class AttendanceDialog(QDialog):
             cb.setFixedWidth(w)
             cb.setFixedHeight(30)
             cb.setStyleSheet(
-                f"QComboBox {{ background:#1E1E2E; border:1px solid {BORDER};"
+                f"QComboBox {{ background:#FFFFFF; border:1px solid {BORDER};"
                 f" border-radius:5px; padding:0 8px; color:{TEXT}; font-size:13px; }}"
                 f"QComboBox:focus {{ border-color:{ACCENT}; }}"
                 f"QComboBox::drop-down {{ border:none; }}"
@@ -468,7 +468,7 @@ class AttendanceDialog(QDialog):
         self.de.setFixedWidth(120)
         self.de.setFixedHeight(30)
         self.de.setStyleSheet(
-            f"QDateEdit {{ background:#1E1E2E; border:1px solid {BORDER};"
+            f"QDateEdit {{ background:#FFFFFF; border:1px solid {BORDER};"
             f" border-radius:5px; padding:0 8px; color:{TEXT}; font-size:13px; }}"
             f"QDateEdit:focus {{ border-color:{ACCENT}; }}"
         )
@@ -594,7 +594,7 @@ class AttendanceDialog(QDialog):
         # ══ FOOTER ════════════════════════════════════════════════
         footer = QHBoxLayout()
         footer.addStretch()
-        btn_close = _btn("✕  Đóng", "#555566", 36)
+        btn_close = _btn("✕  Đóng", "#CCD0D5", 36)
         btn_close.setFixedWidth(100)
         btn_close.clicked.connect(self.accept)
         footer.addWidget(btn_close)

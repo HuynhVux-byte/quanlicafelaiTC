@@ -90,7 +90,7 @@ class PhoneLineEdit(QWidget):
 
         self._edit = QLineEdit()
         self._edit.setPlaceholderText(placeholder)
-        self._edit.setMaxLength(11)   # cho phép gõ tối đa 11 để báo lỗi "thừa"
+        self._edit.setMaxLength(10)   # Ép cứng 10 số, không thể gõ dư
         self._edit.setStyleSheet(self._STYLE_NORMAL)
         layout.addWidget(self._edit)
 

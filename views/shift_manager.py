@@ -48,48 +48,48 @@ CA_COLOR = {
 }
 
 STYLE = """
-QDialog, QWidget { background-color: #1E1E2E; color: white; }
-QTabWidget::pane { border: none; background: #1E1E2E; }
+QDialog, QWidget { background-color: #FFFFFF; color: #1C1E21; }
+QTabWidget::pane { border: none; background: #FFFFFF; }
 QTabBar::tab {
-    background: #2D2D3F; color: #A1A1AA;
+    background: #F0F2F5; color: #606770;
     padding: 10px 22px; border-radius: 6px 6px 0 0;
     font-weight: bold; font-size: 13px;
 }
 QTabBar::tab:selected { background: #3498DB; color: white; }
-QTabBar::tab:hover    { background: #3E3E55; color: white; }
+QTabBar::tab:hover    { background: #CCD0D5; color: #1C1E21; }
 QTableWidget {
-    background: #2D2D3F; border: none; border-radius: 8px;
-    gridline-color: #3E3E55; color: white; font-size: 13px;
+    background: #F0F2F5; border: none; border-radius: 8px;
+    gridline-color: #CCD0D5; color: #1C1E21; font-size: 13px;
 }
-QTableWidget::item         { padding: 6px; border-bottom: 1px solid #3E3E55; }
+QTableWidget::item         { padding: 6px; border-bottom: 1px solid #CCD0D5; }
 QTableWidget::item:selected{ background: #3498DB; }
 QHeaderView::section {
-    background: #1A1A24; color: #A1A1AA;
+    background: #E4E6EB; color: #606770;
     padding: 8px; border: none; font-weight: bold;
 }
 QLineEdit, QTimeEdit, QDateEdit, QComboBox, QSpinBox {
-    background: #2D2D3F; border: 1px solid #3E3E55;
-    border-radius: 6px; padding: 6px 10px; color: white; font-size: 13px;
+    background: #F0F2F5; border: 1px solid #CCD0D5;
+    border-radius: 6px; padding: 6px 10px; color: #1C1E21; font-size: 13px;
 }
 QLineEdit:focus, QTimeEdit:focus, QDateEdit:focus { border-color: #3498DB; }
 QComboBox::drop-down { border: none; }
-QComboBox QAbstractItemView { background: #2D2D3F; color: white;
+QComboBox QAbstractItemView { background: #F0F2F5; color: #1C1E21;
     selection-background-color: #3498DB; }
 QListWidget {
-    background: #2D2D3F; border: 1px solid #3E3E55;
-    border-radius: 8px; color: white; font-size: 13px;
+    background: #F0F2F5; border: 1px solid #CCD0D5;
+    border-radius: 8px; color: #1C1E21; font-size: 13px;
 }
-QListWidget::item { padding: 8px 10px; border-bottom: 1px solid #3E3E55; }
+QListWidget::item { padding: 8px 10px; border-bottom: 1px solid #CCD0D5; }
 QListWidget::item:selected { background: #3498DB; }
-QScrollBar:vertical { background: #1A1A24; width: 7px; border-radius: 4px; }
-QScrollBar::handle:vertical { background: #3E3E55; border-radius: 4px; }
-QCheckBox { color: white; font-size: 12px; spacing: 6px; }
+QScrollBar:vertical { background: #E4E6EB; width: 7px; border-radius: 4px; }
+QScrollBar::handle:vertical { background: #CCD0D5; border-radius: 4px; }
+QCheckBox { color: #1C1E21; font-size: 12px; spacing: 6px; }
 QCheckBox::indicator { width: 16px; height: 16px; border-radius: 4px;
-    border: 2px solid #3E3E55; background: #1E1E2E; }
+    border: 2px solid #CCD0D5; background: #FFFFFF; }
 QCheckBox::indicator:checked { background: #3498DB; border-color: #3498DB; }
 QCheckBox::indicator:hover { border-color: #3498DB; }
-QGroupBox { border: 1px solid #3E3E55; border-radius: 8px;
-    margin-top: 8px; padding-top: 6px; color: #A1A1AA; font-size: 12px; }
+QGroupBox { border: 1px solid #CCD0D5; border-radius: 8px;
+    margin-top: 8px; padding-top: 6px; color: #606770; font-size: 12px; }
 QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
 """
 
@@ -98,7 +98,7 @@ def _btn(text: str, color: str, min_h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(min_h)
     b.setStyleSheet(
-        f"background-color:{color}; color:white; font-weight:bold;"
+        f"background-color:{color}; color: #1C1E21; font-weight:bold;"
         f" border-radius:6px; font-size:13px; padding:0 14px;"
     )
     return b
@@ -156,7 +156,7 @@ class ShiftTab(QWidget):
         # ── Form inline ─────────────────────────────────────────
         form_frame = QFrame()
         form_frame.setStyleSheet(
-            "QFrame{background:#2D2D3F;border-radius:10px;border:1px solid #3E3E55;}"
+            "QFrame{background:#F0F2F5;border-radius:10px;border:1px solid #CCD0D5;}"
         )
         fl = QHBoxLayout(form_frame)
         fl.setContentsMargins(16, 12, 16, 12)
@@ -232,7 +232,7 @@ class ShiftTab(QWidget):
                 self.table.setItem(i, 0, id_item)
 
                 name_item = QTableWidgetItem(ca.ten_ca)
-                color = QColor(CA_COLOR.get(ca.ten_ca, "#A1A1AA"))
+                color = QColor(CA_COLOR.get(ca.ten_ca, "#606770"))
                 name_item.setForeground(color)
                 f = name_item.font(); f.setBold(True); name_item.setFont(f)
                 self.table.setItem(i, 1, name_item)
@@ -325,7 +325,7 @@ class DraggableNVItem(QLabel):
         self.setFixedHeight(32)
         self.setCursor(Qt.OpenHandCursor)
         self.setStyleSheet(
-            f"background:{color}; color:white; border-radius:6px;"
+            f"background:{color}; color: #1C1E21; border-radius:6px;"
             f" font-size:12px; font-weight:bold; padding:0 6px;"
         )
 
@@ -357,11 +357,11 @@ class DropCaFrame(QFrame):
         self.setMinimumHeight(90)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
-        color = CA_COLOR.get(ca.ten_ca, "#3E3E55")
+        color = CA_COLOR.get(ca.ten_ca, "#CCD0D5")
         self.setStyleSheet(
-            f"QFrame{{background:#2D2D3F;border:2px dashed {color};"
+            f"QFrame{{background:#F0F2F5;border:2px dashed {color};"
             f"border-radius:8px;}} "
-            f"QFrame[drag_over='true']{{background:#3E3E55;}}"
+            f"QFrame[drag_over='true']{{background:#CCD0D5;}}"
         )
 
         self._layout = QVBoxLayout(self)
@@ -397,13 +397,13 @@ class DropCaFrame(QFrame):
                 self._nv_ids.append(nv.id)
                 row = QHBoxLayout()
                 lbl = QLabel(f"• {nv.ten_nv}")
-                lbl.setStyleSheet("color:#ECF0F1;font-size:11px;border:none;")
+                lbl.setStyleSheet("color:#1C1E21;font-size:11px;border:none;")
                 btn_rm = QPushButton("✖")
                 btn_rm.setFixedSize(18, 18)
                 btn_rm.setStyleSheet(
                     "background:#C0392B;color:white;border-radius:3px;font-size:10px;padding:0;"
                 )
-                btn_rm.clicked.connect(lambda _, nid=nv.id: self._remove(nid))
+                btn_rm.clicked.connect(lambda checked=False, nid=nv.id: self._remove(nid))
                 row.addWidget(lbl); row.addStretch(); row.addWidget(btn_rm)
                 container = QWidget()
                 container.setLayout(row)
@@ -495,12 +495,12 @@ class AssignTab(QWidget):
         # ── Cột trái: danh sách NV có checkbox ──────────────────
         left = QFrame()
         left.setFixedWidth(220)
-        left.setStyleSheet("QFrame{background:#2D2D3F;border-radius:10px;border:1px solid #3E3E55;}")
+        left.setStyleSheet("QFrame{background:#F0F2F5;border-radius:10px;border:1px solid #CCD0D5;}")
         lv = QVBoxLayout(left)
         lv.setContentsMargins(10, 10, 10, 10)
         lv.setSpacing(6)
 
-        lv.addWidget(_label("👥 NHÂN VIÊN", "#A1A1AA", 12, True))
+        lv.addWidget(_label("👥 NHÂN VIÊN", "#606770", 12, True))
 
         # Nút chọn tất cả / bỏ chọn
         sel_bar = QHBoxLayout()
@@ -565,7 +565,7 @@ class AssignTab(QWidget):
         # ── Toolbar phân công hàng loạt ─────────────────────────
         bulk_frame = QFrame()
         bulk_frame.setStyleSheet(
-            "QFrame{background:#1A1A24;border-radius:8px;border:1px solid #3E3E55;}"
+            "QFrame{background:#E4E6EB;border-radius:8px;border:1px solid #CCD0D5;}"
         )
         bulk_layout = QHBoxLayout(bulk_frame)
         bulk_layout.setContentsMargins(10, 8, 10, 8)
@@ -574,20 +574,20 @@ class AssignTab(QWidget):
         bulk_layout.addWidget(_label("⚡ Phân công hàng loạt:", "#F1C40F", 12, True))
 
         # Chọn ca đích
-        bulk_layout.addWidget(_label("Ca:", "#A1A1AA", 12))
+        bulk_layout.addWidget(_label("Ca:", "#606770", 12))
         self.cb_bulk_ca = QComboBox()
         self.cb_bulk_ca.setFixedWidth(130)
         bulk_layout.addWidget(self.cb_bulk_ca)
 
         # Chọn khoảng ngày
-        bulk_layout.addWidget(_label("Từ:", "#A1A1AA", 12))
+        bulk_layout.addWidget(_label("Từ:", "#606770", 12))
         self.de_bulk_from = QDateEdit(QDate.currentDate())
         self.de_bulk_from.setCalendarPopup(True)
         self.de_bulk_from.setDisplayFormat("dd/MM/yyyy")
         self.de_bulk_from.setFixedWidth(120)
         bulk_layout.addWidget(self.de_bulk_from)
 
-        bulk_layout.addWidget(_label("Đến:", "#A1A1AA", 12))
+        bulk_layout.addWidget(_label("Đến:", "#606770", 12))
         self.de_bulk_to = QDateEdit(QDate.currentDate().addDays(6))
         self.de_bulk_to.setCalendarPopup(True)
         self.de_bulk_to.setDisplayFormat("dd/MM/yyyy")
@@ -906,7 +906,7 @@ class WeeklyCalendarTab(QWidget):
         self.scroll.setWidgetResizable(True)
         self.scroll.setStyleSheet("QScrollArea{border:none;}")
         self.inner = QWidget()
-        self.inner.setStyleSheet("background:#1E1E2E;")
+        self.inner.setStyleSheet("background:#FFFFFF;")
         self.grid = QGridLayout(self.inner)
         self.grid.setSpacing(6)
         self.scroll.setWidget(self.inner)
@@ -946,7 +946,7 @@ class WeeklyCalendarTab(QWidget):
         lbl0 = QLabel("Ca \\ Ngày")
         lbl0.setAlignment(Qt.AlignCenter)
         lbl0.setStyleSheet(
-            "background:#1A1A24;color:#A1A1AA;font-weight:bold;"
+            "background:#E4E6EB;color:#606770;font-weight:bold;"
             "border-radius:6px;padding:8px;font-size:12px;"
         )
         self.grid.addWidget(lbl0, 0, 0)
@@ -960,9 +960,9 @@ class WeeklyCalendarTab(QWidget):
             lbl = QLabel(text)
             lbl.setAlignment(Qt.AlignCenter)
             lbl.setTextFormat(Qt.RichText)
-            bg = "#2980B9" if is_today else "#2D2D3F"
+            bg = "#2980B9" if is_today else "#F0F2F5"
             lbl.setStyleSheet(
-                f"background:{bg};color:white;border-radius:6px;"
+                f"background:{bg};color: #1C1E21;border-radius:6px;"
                 f"padding:8px 4px;font-size:12px;"
             )
             self.grid.addWidget(lbl, 0, d + 1)
@@ -970,14 +970,14 @@ class WeeklyCalendarTab(QWidget):
         # ── Các hàng ca ─────────────────────────────────────────
         for row, ca in enumerate(cas, start=1):
             # Nhãn ca
-            color = CA_COLOR.get(ca.ten_ca, "#3E3E55")
+            color = CA_COLOR.get(ca.ten_ca, "#CCD0D5")
             bd = ca.gio_bat_dau.strftime("%H:%M")  if ca.gio_bat_dau  else ""
             kt = ca.gio_ket_thuc.strftime("%H:%M") if ca.gio_ket_thuc else ""
             ca_lbl = QLabel(f"<b>{ca.ten_ca}</b><br><small>{bd}–{kt}</small>")
             ca_lbl.setTextFormat(Qt.RichText)
             ca_lbl.setAlignment(Qt.AlignCenter)
             ca_lbl.setStyleSheet(
-                f"background:{color};color:white;border-radius:6px;"
+                f"background:{color};color: #1C1E21;border-radius:6px;"
                 f"padding:8px 6px;font-size:12px;"
             )
             self.grid.addWidget(ca_lbl, row, 0)
@@ -995,11 +995,11 @@ class WeeklyCalendarTab(QWidget):
 
     def _make_cell(self, ca: CaLamViec, ngay: date, today: date) -> QFrame:
         is_today = (ngay == today)
-        border_color = "#3498DB" if is_today else "#3E3E55"
+        border_color = "#3498DB" if is_today else "#CCD0D5"
 
         frame = QFrame()
         frame.setStyleSheet(
-            f"QFrame{{background:#2D2D3F;border:1px solid {border_color};"
+            f"QFrame{{background:#F0F2F5;border:1px solid {border_color};"
             f"border-radius:6px;}} "
         )
         vb = QVBoxLayout(frame)
@@ -1013,7 +1013,7 @@ class WeeklyCalendarTab(QWidget):
             if not pcs:
                 lbl = QLabel("—")
                 lbl.setAlignment(Qt.AlignCenter)
-                lbl.setStyleSheet("color:#3E3E55;font-size:11px;border:none;")
+                lbl.setStyleSheet("color:#CCD0D5;font-size:11px;border:none;")
                 vb.addWidget(lbl)
             else:
                 for pc in pcs:
@@ -1024,8 +1024,8 @@ class WeeklyCalendarTab(QWidget):
                         "Đã check-in":     "#2ECC71",
                         "Đã check-out":    "#F1C40F",
                         "Vắng":            "#E74C3C",
-                        "Chưa điểm danh": "#A1A1AA",
-                    }.get(tt, "#A1A1AA")
+                        "Chưa điểm danh": "#606770",
+                    }.get(tt, "#606770")
                     lbl = QLabel(f"• {nv.ten_nv}")
                     lbl.setStyleSheet(
                         f"color:{tt_color};font-size:11px;border:none;"

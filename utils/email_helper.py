@@ -36,14 +36,20 @@ def _send(to_email: str, subject: str, html_body: str) -> tuple[bool, str]:
             "SENDER_EMAIL + SENDER_APP_PASSWORD."
         )
     try:
+        from email.utils import formataddr
+        from email.header import Header
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"]    = f"{SHOP_NAME} <{SENDER_EMAIL}>"
+        msg["From"]    = formataddr((str(Header(SHOP_NAME, 'utf-8')), SENDER_EMAIL))
         msg["To"]      = to_email
         msg.attach(MIMEText(html_body, "html", "utf-8"))
 
+        # Xóa khoảng trắng trong App Password (nếu người dùng copy có dấu cách)
+        app_pwd = SENDER_APP_PASSWORD.replace(" ", "")
+
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-            server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
+            server.login(SENDER_EMAIL, app_pwd)
             server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
         return True, ""
     except smtplib.SMTPAuthenticationError:

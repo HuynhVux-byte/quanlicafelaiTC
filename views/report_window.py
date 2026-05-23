@@ -28,18 +28,18 @@ from database.db_config import get_session
 from database.models import HoaDon, ChiTietHoaDon, NhanVien, SanPham
 
 # ── Bảng màu ─────────────────────────────────────────────────────────────────
-C_BG     = "#12121E"
-C_PANEL  = "#1C1C2E"
-C_CARD   = "#252538"
-C_BORDER = "#2E2E45"
+C_BG     = "#FFFFFF"
+C_PANEL  = "#FFFFFF"
+C_CARD   = "#F0F2F5"
+C_BORDER = "#F0F2F5"
 C_ACCENT = "#3498DB"
 C_GREEN  = "#2ECC71"
 C_ORANGE = "#E67E22"
 C_RED    = "#E74C3C"
 C_YELLOW = "#F1C40F"
 C_PURPLE = "#9B59B6"
-C_TEXT   = "#E0E0EE"
-C_MUTED  = "#7070A0"
+C_TEXT   = "#1C1E21"
+C_MUTED  = "#606770"
 
 STYLE = f"""
 QDialog, QWidget   {{ background:{C_BG}; color:{C_TEXT}; }}
@@ -47,7 +47,7 @@ QFrame             {{ background:{C_PANEL}; border-radius:10px; border:none; }}
 QTableWidget       {{ background:{C_CARD}; border:none; border-radius:8px;
                       gridline-color:{C_BORDER}; color:{C_TEXT}; font-size:13px; }}
 QTableWidget::item {{ padding:8px 6px; border-bottom:1px solid {C_BORDER}; }}
-QTableWidget::item:selected {{ background:{C_ACCENT}; color:white; }}
+QTableWidget::item:selected {{ background:{C_ACCENT}; color: #1C1E21; }}
 QHeaderView::section {{ background:{C_PANEL}; color:{C_MUTED}; padding:10px 6px;
     border:none; font-weight:bold; font-size:12px;
     border-bottom:2px solid {C_BORDER}; }}
@@ -79,7 +79,7 @@ def _btn(text, color=C_ACCENT, h=36):
     b = QPushButton(text)
     b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"QPushButton{{background:{color};color:white;font-weight:bold;"
+        f"QPushButton{{background:{color};color: #1C1E21;font-weight:bold;"
         f"border-radius:8px;font-size:13px;padding:0 16px;border:none;}}"
         f"QPushButton:hover{{background:{color}CC;}}"
         f"QPushButton:pressed{{background:{color}99;}}"
@@ -128,18 +128,16 @@ def _kpi_card(icon, title, value, color=C_ACCENT, sub=""):
 
 
 def _tab_btn(text, active=False):
-    color = C_ACCENT if active else C_CARD
     b = QPushButton(text)
     b.setMinimumHeight(38)
     b.setCheckable(True)
     b.setChecked(active)
     b.setCursor(Qt.PointingHandCursor)
     b.setStyleSheet(
-        f"QPushButton{{background:{color};color:{'white' if active else C_MUTED};"
-        f"font-weight:{'bold' if active else 'normal'};"
-        f"border-radius:8px;font-size:13px;padding:0 18px;border:none;}}"
-        f"QPushButton:checked{{background:{C_ACCENT};color:white;font-weight:bold;}}"
-        f"QPushButton:hover{{background:{C_ACCENT}55;color:white;}}"
+        f"QPushButton{{background:{C_CARD};color:{C_MUTED};"
+        f"font-weight:normal;border-radius:8px;font-size:13px;padding:0 18px;border:none;}}"
+        f"QPushButton:checked{{background:{C_ACCENT};color: #1C1E21;font-weight:bold;}}"
+        f"QPushButton:hover{{background:{C_ACCENT}55;color: #1C1E21;}}"
     )
     return b
 
@@ -583,7 +581,7 @@ class ReportDialog(QDialog):
                 f"background:{C_CARD}", f"background:{C_CARD}"
             ))
             b.clicked.connect(
-                lambda _, df=d_from, dt=d_to, lb=label: self._set_quick(df, dt, lb)
+                lambda checked=False, df=d_from, dt=d_to, lb=label: self._set_quick(df, dt, lb)
             )
             quick.addWidget(b)
             self._quick_btns.append((b, label))
@@ -598,13 +596,17 @@ class ReportDialog(QDialog):
 
         # ── Tabs ─────────────────────────────────────────────────────────────
         tab_row = QHBoxLayout(); tab_row.setSpacing(6)
+        from PySide6.QtWidgets import QButtonGroup
+        self.tab_group = QButtonGroup(self)
+        self.tab_group.setExclusive(True)
         self._tabs = []
         tab_labels = ["🏠 Tổng quan", "🕐 Theo giờ", "🍹 Sản phẩm", "👤 Nhân viên"]
         for i, lbl in enumerate(tab_labels):
             b = _tab_btn(lbl, active=(i == 0))
-            b.clicked.connect(lambda _, idx=i: self._switch_tab(idx))
+            self.tab_group.addButton(b, i)
             tab_row.addWidget(b)
             self._tabs.append(b)
+        self.tab_group.idClicked.connect(self._switch_tab)
         tab_row.addStretch()
         root.addLayout(tab_row)
 
@@ -625,7 +627,7 @@ class ReportDialog(QDialog):
         self.lbl_status = _lbl("", C_MUTED, 12)
         bot.addWidget(self.lbl_status)
         bot.addStretch()
-        btn_close = _btn("✖ Đóng", "#555577", 38)
+        btn_close = _btn("✖ Đóng", "#CCD0D5", 38)
         btn_close.setFixedWidth(100)
         btn_close.clicked.connect(self.accept)
         bot.addWidget(btn_close)
@@ -637,18 +639,6 @@ class ReportDialog(QDialog):
     # ── Chuyển tab ───────────────────────────────────────────────────────────
     def _switch_tab(self, idx: int):
         self.stack.setCurrentIndex(idx)
-        for i, b in enumerate(self._tabs):
-            active = (i == idx)
-            b.setChecked(active)
-            color = C_ACCENT if active else C_CARD
-            b.setStyleSheet(
-                f"QPushButton{{background:{color};"
-                f"color:{'white' if active else C_MUTED};"
-                f"font-weight:{'bold' if active else 'normal'};"
-                f"border-radius:8px;font-size:13px;"
-                f"padding:0 18px;border:none;}}"
-                f"QPushButton:hover{{background:{C_ACCENT}55;color:white;}}"
-            )
 
     # ── Lọc nhanh ngày ───────────────────────────────────────────────────────
     def _set_quick(self, d_from_offset, d_to_offset, label):

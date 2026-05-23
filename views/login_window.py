@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox)
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox)
 from PySide6.QtCore import Qt
 
 from controllers.auth_controller import authenticate_user
@@ -13,14 +13,27 @@ class LoginDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel("<b>TÊN ĐĂNG NHẬP</b>"))
+        layout.addWidget(QLabel("<b>EMAIL ĐĂNG NHẬP</b>"))
         self.txt_username = QLineEdit()
+        self.txt_username.setPlaceholderText("VD: admin@cafe.com")
         layout.addWidget(self.txt_username)
 
         layout.addWidget(QLabel("<b>MẬT KHẨU</b>"))
+        
+        pwd_layout = QHBoxLayout()
+        pwd_layout.setContentsMargins(0, 0, 0, 0)
         self.txt_password = QLineEdit()
         self.txt_password.setEchoMode(QLineEdit.Password)
-        layout.addWidget(self.txt_password)
+        pwd_layout.addWidget(self.txt_password)
+        
+        self.btn_show_pwd = QPushButton("👁")
+        self.btn_show_pwd.setFixedSize(30, 30)
+        self.btn_show_pwd.setCheckable(True)
+        self.btn_show_pwd.setStyleSheet("background: transparent; border: none; font-size: 16px;")
+        self.btn_show_pwd.toggled.connect(self.toggle_password_visibility)
+        pwd_layout.addWidget(self.btn_show_pwd)
+        
+        layout.addLayout(pwd_layout)
 
         self.btn_login = QPushButton("ĐĂNG NHẬP")
         self.btn_login.setFixedHeight(45)
@@ -36,6 +49,14 @@ class LoginDialog(QDialog):
         # Enter trong ô mật khẩu cũng kích hoạt đăng nhập
         self.txt_password.returnPressed.connect(self.handle_login)
 
+    def toggle_password_visibility(self, checked):
+        if checked:
+            self.txt_password.setEchoMode(QLineEdit.Normal)
+            self.btn_show_pwd.setText("🙈")
+        else:
+            self.txt_password.setEchoMode(QLineEdit.Password)
+            self.btn_show_pwd.setText("👁")
+
     def handle_login(self):
         username = self.txt_username.text().strip()
         password = self.txt_password.text()
@@ -50,31 +71,24 @@ class LoginDialog(QDialog):
 
     def forgot_password(self):
         from PySide6.QtWidgets import QInputDialog
-        username, ok = QInputDialog.getText(
+        email, ok = QInputDialog.getText(
             self, "Quên Mật Khẩu",
-            "Nhập tên đăng nhập của bạn:",
+            "Nhập Email đăng nhập của bạn:",
             QLineEdit.Normal, ""
         )
-        if not ok or not username.strip():
+        if not ok or not email.strip():
             return
 
-        username = username.strip()
+        email = email.strip()
 
         from database.db_config import get_session
         from database.models import NhanVien
         session = get_session()
         try:
-            emp = session.query(NhanVien).filter_by(ten_dang_nhap=username).first()
+            emp = session.query(NhanVien).filter_by(email=email).first()
             if not emp:
                 QMessageBox.warning(self, "Không tìm thấy",
-                                    f"Tên đăng nhập '{username}' không tồn tại.")
-                return
-            if not emp.email:
-                QMessageBox.warning(
-                    self, "Chưa có email",
-                    f"Tài khoản '{username}' chưa được đăng ký email.\n\n"
-                    "Vui lòng liên hệ Admin để được cấp lại mật khẩu."
-                )
+                                    f"Tài khoản với email '{email}' không tồn tại.")
                 return
 
             from utils.email_helper import gen_password, send_reset_password

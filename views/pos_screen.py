@@ -29,17 +29,17 @@ from database.models import SanPham, KhuyenMai
 from controllers.pos_controller import process_checkout
 
 # ── Palette ──────────────────────────────────────────────────────────────────
-BG_DARK  = "#1E1E2E"
-BG_CARD  = "#2D2D3F"
-BG_PANEL = "#252535"
+BG_DARK  = "#FFFFFF"
+BG_CARD  = "#F0F2F5"
+BG_PANEL = "#F0F2F5"
 ACCENT   = "#3498DB"
 GREEN    = "#27AE60"
 ORANGE   = "#E67E22"
 RED      = "#E74C3C"
-TEXT     = "#ECF0F1"
-TEXT_DIM = "#A1A1AA"
+TEXT     = "#1C1E21"
+TEXT_DIM = "#606770"
 GOLD     = "#F1C40F"
-BORDER   = "#3E3E55"
+BORDER   = "#CCD0D5"
 
 STYLE_MAIN = f"""
 QWidget      {{ background:{BG_DARK}; color:{TEXT}; font-family:'Segoe UI'; }}
@@ -53,22 +53,22 @@ QScrollBar::handle:vertical {{
 }}
 QLineEdit {{
     background:{BG_CARD}; border:1px solid {BORDER};
-    border-radius:6px; padding:6px 10px; color:{TEXT}; font-size:13px;
+    border-radius:6px; padding:6px 10px; color:{TEXT}; font-size:16px;
 }}
 QLineEdit:focus {{ border-color:{ACCENT}; }}
 QPushButton {{
-    border-radius:6px; font-weight:bold; font-size:13px;
-    color:white; padding:6px 14px;
+    border-radius:6px; font-weight:bold; font-size:16px;
+    color: #1C1E21; padding:6px 14px;
 }}
 QTableWidget {{
     background:{BG_CARD}; border:none; gridline-color:{BORDER};
-    color:{TEXT}; font-size:13px; border-radius:8px;
+    color:{TEXT}; font-size:16px; border-radius:8px;
 }}
 QTableWidget::item {{ padding:5px; border-bottom:1px solid {BORDER}; }}
-QTableWidget::item:selected {{ background:{ACCENT}; color:white; }}
+QTableWidget::item:selected {{ background:{ACCENT}; color: #1C1E21; }}
 QHeaderView::section {{
     background:{BG_PANEL}; color:{TEXT_DIM}; padding:8px;
-    border:none; font-weight:bold; font-size:12px;
+    border:none; font-weight:bold; font-size:14px;
 }}
 """
 
@@ -78,7 +78,7 @@ QWidget  {{ background:{BG_DARK}; color:{TEXT}; }}
 QLabel   {{ background:transparent; color:{TEXT}; }}
 QLineEdit, QComboBox, QSpinBox, QTextEdit {{
     background:{BG_CARD}; border:1px solid {BORDER};
-    border-radius:6px; padding:6px 10px; color:{TEXT}; font-size:13px;
+    border-radius:6px; padding:8px 10px; color:{TEXT}; font-size:16px;
 }}
 QLineEdit:focus, QComboBox:focus, QTextEdit:focus {{ border-color:{ACCENT}; }}
 QComboBox::drop-down {{ border:none; }}
@@ -89,31 +89,31 @@ QComboBox QAbstractItemView {{
 QGroupBox {{
     border:1px solid {BORDER}; border-radius:8px;
     margin-top:8px; padding-top:6px;
-    color:{TEXT_DIM}; font-size:12px;
+    color:{TEXT_DIM}; font-size:14px;
 }}
 QGroupBox::title {{ subcontrol-origin:margin; left:10px; padding:0 4px; }}
 QRadioButton {{
-    color:{TEXT}; font-size:13px; spacing:6px; background:transparent;
+    color:{TEXT}; font-size:16px; spacing:6px; background:transparent;
 }}
 QRadioButton::indicator {{
-    width:15px; height:15px; border-radius:8px;
+    width:18px; height:18px; border-radius:9px;
     border:2px solid {BORDER}; background:{BG_DARK};
 }}
 QRadioButton::indicator:checked {{ background:{ACCENT}; border-color:{ACCENT}; }}
 """
 
 
-def _btn(text: str, color: str, h: int = 36) -> QPushButton:
+def _btn(text: str, color: str, h: int = 42) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"background:{color}; color:white; font-weight:bold;"
-        f" border-radius:6px; font-size:13px; padding:0 14px;"
+        f"background:{color}; color: #1C1E21; font-weight:bold;"
+        f" border-radius:6px; font-size:16px; padding:0 14px;"
     )
     return b
 
 
-def _lbl(text: str, color: str = TEXT, size: int = 13, bold: bool = False) -> QLabel:
+def _lbl(text: str, color: str = TEXT, size: int = 16, bold: bool = False) -> QLabel:
     l = QLabel(text)
     l.setStyleSheet(
         f"color:{color}; font-size:{size}px;"
@@ -457,18 +457,31 @@ class InvoiceTable(QTableWidget):
 
     COL_NAME  = 0
     COL_QTY   = 1
-    COL_PRICE = 2   # Đơn Giá  ← MỚI
+    COL_PRICE = 2   # Đơn Giá
     COL_TOTAL = 3   # Thành Tiền
     COL_BTN   = 4   # −/+
 
     def __init__(self, parent=None):
         super().__init__(0, 5, parent)
         self.setHorizontalHeaderLabels(["Tên Món", "SL", "Đơn Giá", "Thành Tiền", ""])
+        
+        self.setStyleSheet("""
+            QTableWidget {
+                background: #F0F2F5; border: none; gridline-color: #CCD0D5;
+                color: #1C1E21; font-size: 16px; border-radius: 8px;
+            }
+            QTableWidget::item { padding: 8px; border-bottom: 1px solid #CCD0D5; }
+            QTableWidget::item:selected { background: #3498DB; color: white; }
+            QHeaderView::section {
+                background: #E4E6EB; color: #606770; padding: 10px;
+                border: none; font-weight: bold; font-size: 14px;
+            }
+        """)
 
         hh = self.horizontalHeader()
         hh.setSectionResizeMode(self.COL_NAME,  QHeaderView.Stretch)
         hh.setSectionResizeMode(self.COL_QTY,   QHeaderView.Fixed)
-        self.setColumnWidth(self.COL_QTY, 52)
+        self.setColumnWidth(self.COL_QTY, 40)
         hh.setSectionResizeMode(self.COL_PRICE, QHeaderView.ResizeToContents)
         hh.setSectionResizeMode(self.COL_TOTAL, QHeaderView.ResizeToContents)
         hh.setSectionResizeMode(self.COL_BTN,   QHeaderView.Fixed)
@@ -572,18 +585,18 @@ class InvoiceTable(QTableWidget):
             qty_it.setForeground(QColor(fg_main))
             self.setItem(row, self.COL_QTY, qty_it)
 
-            # Đơn Giá
+            # Đơn Giá (Giá gốc 1 món)
             price_txt = "0 đ  🎁" if is_gift else f"{int(it['price']):,}đ"
             price_it  = QTableWidgetItem(price_txt)
             price_it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            price_it.setForeground(QColor("#2ECC71" if is_gift else TEXT_DIM))
+            price_it.setForeground(QColor("#2ECC71" if is_gift else "#606770")) # Màu mờ hơn để phân biệt với tổng
             self.setItem(row, self.COL_PRICE, price_it)
 
-            # Thành Tiền
+            # Thành Tiền (SL x Đơn Giá)
             total_txt = "0 đ" if is_gift else f"{int(it['qty'] * it['price']):,}đ"
             total_it  = QTableWidgetItem(total_txt)
             total_it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            total_it.setForeground(QColor("#2ECC71" if is_gift else GOLD))
+            total_it.setForeground(QColor("#2ECC71" if is_gift else "#F1C40F")) # Màu vàng nổi bật
             self.setItem(row, self.COL_TOTAL, total_it)
 
             # Nút −/+ hoặc 🔒
@@ -608,7 +621,7 @@ class InvoiceTable(QTableWidget):
                 for b, c in [(btn_m, RED), (btn_p, GREEN)]:
                     b.setFixedSize(28, 28)
                     b.setStyleSheet(
-                        f"background:{c}; color:white; font-weight:bold;"
+                        f"background:{c}; color: #1C1E21; font-weight:bold;"
                         f" font-size:15px; border-radius:5px; padding:0;"
                     )
                 btn_m.clicked.connect(lambda *_, r=row: self._dec(r))
@@ -714,10 +727,10 @@ class ProductCard(QPushButton):
         self.setStyleSheet(f"""
             QPushButton {{
                 background:{BG_CARD}; border:1px solid {BORDER};
-                border-radius:10px; text-align:left; padding:8px; color:{TEXT};
+                border-radius:10px; text-align:left; padding:8px; color: #1C1E21;
             }}
-            QPushButton:hover   {{ border:2px solid {ACCENT}; background:#33334A; }}
-            QPushButton:pressed {{ background:#3E3E55; }}
+            QPushButton:hover   {{ border:2px solid {ACCENT}; background:#D8DADF; }}
+            QPushButton:pressed {{ background:#CCD0D5; }}
         """)
 
         layout = QHBoxLayout(self)
@@ -730,23 +743,23 @@ class ProductCard(QPushButton):
             pm = QPixmap()
             pm.loadFromData(hinh)
             img_lbl.setPixmap(pm.scaled(54, 54, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            img_lbl.setStyleSheet("border-radius:6px; background:#3E3E55;")
+            img_lbl.setStyleSheet("border-radius:6px; background:#CCD0D5;")
         else:
             img_lbl.setText("📦")
             img_lbl.setAlignment(Qt.AlignCenter)
             img_lbl.setStyleSheet(
-                "border-radius:6px; background:#3E3E55;"
-                " font-size:22px; color:#A1A1AA;"
+                "border-radius:6px; background:#CCD0D5;"
+                " font-size:22px; color:#606770;"
             )
         layout.addWidget(img_lbl)
 
         info = QVBoxLayout()
         info.setSpacing(3)
         n = QLabel(ten)
-        n.setStyleSheet(f"color:{TEXT}; font-weight:bold; font-size:13px;")
+        n.setStyleSheet(f"color: #1C1E21; font-weight:bold; font-size:16px;")
         n.setWordWrap(True)
         p = QLabel(f"{int(gia):,} đ")
-        p.setStyleSheet(f"color:{GOLD}; font-size:12px; font-weight:bold;")
+        p.setStyleSheet(f"color:{GOLD}; font-size:14px; font-weight:bold;")
         info.addWidget(n)
         info.addWidget(p)
         info.addStretch()
@@ -883,7 +896,7 @@ class POSScreen(QWidget):
         btn_pay = QPushButton("✅  XUẤT HÓA ĐƠN")
         btn_pay.setMinimumHeight(52)
         btn_pay.setStyleSheet(
-            f"background:{GREEN}; color:white; font-size:16px;"
+            f"background:{GREEN}; color: #1C1E21; font-size:16px;"
             f" font-weight:bold; border-radius:10px;"
         )
         btn_pay.clicked.connect(self._checkout)
@@ -954,7 +967,7 @@ class POSScreen(QWidget):
             b.setCheckable(True)
             b.setCursor(Qt.PointingHandCursor)
             b.setStyleSheet(self._cs(False))
-            b.clicked.connect(lambda _, cn=cname, btn=b: self._set_cat(cn, btn))
+            b.clicked.connect(lambda checked=False, cn=cname, btn=b: self._set_cat(cn, btn))
             self._cat_bar.addWidget(b)
             self._cat_btns.append(b)
 
@@ -963,7 +976,7 @@ class POSScreen(QWidget):
     def _cs(self, active: bool) -> str:
         bg = ACCENT if active else BG_CARD
         return (
-            f"QPushButton {{ background:{bg}; color:white; border-radius:14px;"
+            f"QPushButton {{ background:{bg}; color: #1C1E21; border-radius:14px;"
             f" font-size:13px; font-weight:bold; padding:5px 14px;"
             f" border:1px solid {BORDER}; }}"
             f"QPushButton:hover {{ background:{ACCENT}; }}"

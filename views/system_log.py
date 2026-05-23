@@ -38,25 +38,25 @@ from database.db_config import ghi_nhat_ky_dang_nhap, ghi_nhat_ky_hoat_dong  # n
 
 # ── Style ────────────────────────────────────────────────────────────────────
 STYLE = """
-QDialog,QWidget{background-color:#1E1E2E;color:white;}
+QDialog,QWidget{background-color: #FFFFFF;color: #1C1E21;}
 QTabWidget::pane{border:none;}
-QTabBar::tab{background:#2D2D3F;color:#A1A1AA;padding:10px 20px;
+QTabBar::tab{background:#F0F2F5;color:#606770;padding:10px 20px;
     border-radius:6px 6px 0 0;font-weight:bold;font-size:13px;}
 QTabBar::tab:selected{background:#3498DB;color:white;}
-QTabBar::tab:hover{background:#3E3E55;color:white;}
-QTableWidget{background:#2D2D3F;border:none;border-radius:8px;
-    gridline-color:#3E3E55;color:white;font-size:12px;}
-QTableWidget::item{padding:7px;border-bottom:1px solid #3E3E55;}
+QTabBar::tab:hover{background:#CCD0D5;color: #1C1E21;}
+QTableWidget{background:#F0F2F5;border:none;border-radius:8px;
+    gridline-color:#CCD0D5;color: #1C1E21;font-size:12px;}
+QTableWidget::item{padding:7px;border-bottom:1px solid #CCD0D5;}
 QTableWidget::item:selected{background:#3498DB;}
-QHeaderView::section{background:#1A1A24;color:#A1A1AA;
+QHeaderView::section{background:#E4E6EB;color:#606770;
     padding:9px;border:none;font-weight:bold;font-size:12px;}
-QComboBox,QDateEdit,QLineEdit{background:#2D2D3F;border:1px solid #3E3E55;
-    border-radius:6px;padding:5px 8px;color:white;font-size:12px;}
+QComboBox,QDateEdit,QLineEdit{background:#F0F2F5;border:1px solid #CCD0D5;
+    border-radius:6px;padding:5px 8px;color: #1C1E21;font-size:12px;}
 QComboBox::drop-down{border:none;}
-QComboBox QAbstractItemView{background:#2D2D3F;color:white;
+QComboBox QAbstractItemView{background:#F0F2F5;color: #1C1E21;
     selection-background-color:#3498DB;}
-QScrollBar:vertical{background:#1A1A24;width:7px;border-radius:4px;}
-QScrollBar::handle:vertical{background:#3E3E55;border-radius:4px;}
+QScrollBar:vertical{background:#E4E6EB;width:7px;border-radius:4px;}
+QScrollBar::handle:vertical{background:#CCD0D5;border-radius:4px;}
 """
 
 # Màu kết quả
@@ -71,7 +71,7 @@ KQ_COLOR = {
 def _btn(t, c="#2980B9", h=32):
     b = QPushButton(t); b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"background:{c};color:white;font-weight:bold;"
+        f"background:{c};color: #1C1E21;font-weight:bold;"
         f"border-radius:6px;font-size:12px;padding:0 10px;"
     )
     return b
@@ -84,7 +84,7 @@ def _lbl(t, c="white", s=12, bold=False):
 def _sep():
     """Đường kẻ dọc phân cách."""
     f = QFrame(); f.setFrameShape(QFrame.VLine)
-    f.setStyleSheet("color:#3E3E55;"); return f
+    f.setStyleSheet("color:#CCD0D5;"); return f
 
 
 # ── Load danh sách NV cho combobox ──────────────────────────────────────────
@@ -161,7 +161,7 @@ class LoginLogTab(QWidget):
         self.lbl_total    = _lbl("", "#3498DB", 12, True)
         self.lbl_success  = _lbl("", "#2ECC71", 12)
         self.lbl_fail     = _lbl("", "#E74C3C", 12)
-        self.lbl_update   = _lbl("", "#A1A1AA", 11)
+        self.lbl_update   = _lbl("", "#606770", 11)
         for w in [self.lbl_total, self.lbl_success, self.lbl_fail, self.lbl_update]:
             stat_bar.addWidget(w)
         stat_bar.addStretch()
@@ -182,7 +182,7 @@ class LoginLogTab(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
         self.table.setAlternatingRowColors(True)
-        self.table.setStyleSheet(STYLE + "QTableWidget{alternate-background-color:#252535;}")
+        self.table.setStyleSheet(STYLE + "QTableWidget{alternate-background-color:#F0F2F5;}")
         v.addWidget(self.table)
 
         # Auto-refresh 15 giây
@@ -238,7 +238,7 @@ class LoginLogTab(QWidget):
                 # Cột 0: Khi nào
                 tg = log.thoi_gian.strftime("%H:%M:%S  %d/%m/%Y") if log.thoi_gian else "—"
                 tg_item = QTableWidgetItem(tg)
-                tg_item.setForeground(QColor("#A1A1AA"))
+                tg_item.setForeground(QColor("#606770"))
                 self.table.setItem(i, 0, tg_item)
 
                 # Cột 1: Nhân viên (dùng cache tránh query N lần)
@@ -250,7 +250,7 @@ class LoginLogTab(QWidget):
                 else:
                     nv_str = log.ten_dang_nhap or "Không xác định"
                 nv_item = QTableWidgetItem(nv_str)
-                nv_item.setForeground(QColor("#ECF0F1"))
+                nv_item.setForeground(QColor("#1C1E21"))
                 f = nv_item.font(); f.setBold(True); nv_item.setFont(f)
                 self.table.setItem(i, 1, nv_item)
 
@@ -263,7 +263,7 @@ class LoginLogTab(QWidget):
                 # Cột 3: Kết quả (màu nổi bật)
                 kq_str  = log.ket_qua or "—"
                 kq_item = QTableWidgetItem(kq_str)
-                kq_item.setForeground(QColor(KQ_COLOR.get(kq_str, "#A1A1AA")))
+                kq_item.setForeground(QColor(KQ_COLOR.get(kq_str, "#606770")))
                 f2 = kq_item.font(); f2.setBold(kq_str != "Thành công"); kq_item.setFont(f2)
                 self.table.setItem(i, 3, kq_item)
 
@@ -334,7 +334,7 @@ class StaffLogTab(QWidget):
         # ── Thống kê ────────────────────────────────────────────
         stat_bar = QHBoxLayout()
         self.lbl_count  = _lbl("", "#3498DB", 12, True)
-        self.lbl_update = _lbl("", "#A1A1AA", 11)
+        self.lbl_update = _lbl("", "#606770", 11)
         stat_bar.addWidget(self.lbl_count); stat_bar.addWidget(self.lbl_update)
         stat_bar.addStretch()
         v.addLayout(stat_bar)
@@ -360,7 +360,7 @@ class StaffLogTab(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
         self.table.setAlternatingRowColors(True)
-        self.table.setStyleSheet(STYLE + "QTableWidget{alternate-background-color:#252535;}")
+        self.table.setStyleSheet(STYLE + "QTableWidget{alternate-background-color:#F0F2F5;}")
         v.addWidget(self.table)
 
         _load_nv_combo(self.cb_nv)
@@ -402,7 +402,7 @@ class StaffLogTab(QWidget):
 
                 # Cột 0: Khi nào
                 tg = log.thoi_gian.strftime("%H:%M  %d/%m/%Y") if log.thoi_gian else "—"
-                tg_it = QTableWidgetItem(tg); tg_it.setForeground(QColor("#A1A1AA"))
+                tg_it = QTableWidgetItem(tg); tg_it.setForeground(QColor("#606770"))
                 self.table.setItem(i, 0, tg_it)
 
                 # Cột 1: Ai
@@ -410,7 +410,7 @@ class StaffLogTab(QWidget):
                     nv = s.query(NhanVien).get(log.ma_nv)
                     nv_cache[log.ma_nv] = nv.ten_nv if nv else "?"
                 nv_it = QTableWidgetItem(nv_cache[log.ma_nv])
-                nv_it.setForeground(QColor("#ECF0F1"))
+                nv_it.setForeground(QColor("#1C1E21"))
                 f = nv_it.font(); f.setBold(True); nv_it.setFont(f)
                 self.table.setItem(i, 1, nv_it)
 
@@ -427,7 +427,7 @@ class StaffLogTab(QWidget):
                 # Cột 4: Kết quả
                 kq_str = log.ket_qua or "—"
                 kq_it  = QTableWidgetItem(kq_str)
-                kq_it.setForeground(QColor(KQ_COLOR.get(kq_str, "#A1A1AA")))
+                kq_it.setForeground(QColor(KQ_COLOR.get(kq_str, "#606770")))
                 f2 = kq_it.font(); f2.setBold(kq_str == "Thất bại"); kq_it.setFont(f2)
                 self.table.setItem(i, 4, kq_it)
 
@@ -461,7 +461,7 @@ class PromoLogTab(QWidget):
         bar.addStretch()
         v.addLayout(bar)
 
-        self.lbl_info = _lbl("", "#A1A1AA", 11); v.addWidget(self.lbl_info)
+        self.lbl_info = _lbl("", "#606770", 11); v.addWidget(self.lbl_info)
 
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels([
@@ -566,7 +566,7 @@ class SystemLogDialog(QDialog):
         title.setStyleSheet("font-size:16px;font-weight:bold;color:#3498DB;")
         header.addWidget(title); header.addStretch()
         role_lbl = QLabel(f"👁 Chế độ xem: {chuc_vu}")
-        role_lbl.setStyleSheet("font-size:12px;color:#A1A1AA;")
+        role_lbl.setStyleSheet("font-size:12px;color:#606770;")
         header.addWidget(role_lbl)
         root.addLayout(header)
 

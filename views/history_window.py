@@ -34,17 +34,17 @@ from database.models import HoaDon, ChiTietHoaDon, NhanVien, KhuyenMai, PhienLam
 PAGE_SIZE = 30   # số hóa đơn mỗi trang
 
 # ── Bảng màu ─────────────────────────────────────────────────────
-C_BG      = "#12121E"
-C_PANEL   = "#1C1C2E"
-C_CARD    = "#252538"
-C_BORDER  = "#2E2E45"
+C_BG      = "#FFFFFF"
+C_PANEL   = "#FFFFFF"
+C_CARD    = "#F0F2F5"
+C_BORDER  = "#F0F2F5"
 C_ACCENT  = "#3498DB"
 C_GREEN   = "#2ECC71"
 C_ORANGE  = "#E67E22"
 C_RED     = "#E74C3C"
 C_YELLOW  = "#F1C40F"
-C_TEXT    = "#E0E0EE"
-C_MUTED   = "#7070A0"
+C_TEXT    = "#1C1E21"
+C_MUTED   = "#606770"
 
 STYLE = f"""
 QDialog, QWidget   {{ background:{C_BG}; color:{C_TEXT}; }}
@@ -52,7 +52,7 @@ QFrame             {{ background:{C_PANEL}; border-radius:10px; }}
 QTableWidget       {{ background:{C_CARD}; border:none; border-radius:8px;
                       gridline-color:{C_BORDER}; color:{C_TEXT}; font-size:13px; }}
 QTableWidget::item {{ padding:7px 6px; border-bottom:1px solid {C_BORDER}; }}
-QTableWidget::item:selected {{ background:{C_ACCENT}; color:white; }}
+QTableWidget::item:selected {{ background:{C_ACCENT}; color: #1C1E21; }}
 QHeaderView::section {{ background:{C_PANEL}; color:{C_MUTED}; padding:9px 6px;
     border:none; font-weight:bold; font-size:12px; border-bottom:2px solid {C_BORDER}; }}
 QLineEdit, QDateEdit, QComboBox {{
@@ -84,7 +84,7 @@ def _btn(text, color="#34495E", h=34, w=None):
     b.setMinimumHeight(h)
     if w: b.setFixedWidth(w)
     b.setStyleSheet(
-        f"background:{color};color:white;font-weight:bold;"
+        f"background:{color};color: #1C1E21;font-weight:bold;"
         f"border-radius:6px;font-size:13px;padding:0 12px;border:none;"
     )
     b.setCursor(Qt.PointingHandCursor)
@@ -301,7 +301,7 @@ class HistoryDialog(QDialog):
 
         # ── Thanh dưới ───────────────────────────────────────────
         bot = QHBoxLayout()
-        btn_close = _btn("✖ Đóng", "#555577", 38, 100)
+        btn_close = _btn("✖ Đóng", "#CCD0D5", 38, 100)
         btn_close.clicked.connect(self.accept)
         bot.addStretch()
         bot.addWidget(btn_close)
@@ -331,7 +331,7 @@ class HistoryDialog(QDialog):
             active = (i == btn_idx)
             b.setStyleSheet(
                 f"background:{'#2980B9' if active else C_CARD};"
-                "color:white;font-weight:bold;border-radius:6px;"
+                "color: #1C1E21;font-weight:bold;border-radius:6px;"
                 "font-size:13px;padding:0 12px;border:none;"
             )
         self._reset_and_load()

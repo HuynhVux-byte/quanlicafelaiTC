@@ -32,33 +32,33 @@ HANG_CONFIG = [
 ]
 
 STYLE = """
-QDialog,QWidget{background-color:#1E1E2E;color:white;}
+QDialog,QWidget{background-color: #FFFFFF;color: #1C1E21;}
 QTabWidget::pane{border:none;}
-QTabBar::tab{background:#2D2D3F;color:#A1A1AA;padding:10px 18px;
+QTabBar::tab{background:#F0F2F5;color:#606770;padding:10px 18px;
     border-radius:6px 6px 0 0;font-weight:bold;font-size:13px;}
 QTabBar::tab:selected{background:#3498DB;color:white;}
-QTabBar::tab:hover{background:#3E3E55;color:white;}
-QTableWidget{background:#2D2D3F;border:none;border-radius:8px;
-    gridline-color:#3E3E55;color:white;font-size:13px;}
-QTableWidget::item{padding:7px;border-bottom:1px solid #3E3E55;}
+QTabBar::tab:hover{background:#CCD0D5;color: #1C1E21;}
+QTableWidget{background:#F0F2F5;border:none;border-radius:8px;
+    gridline-color:#CCD0D5;color: #1C1E21;font-size:13px;}
+QTableWidget::item{padding:7px;border-bottom:1px solid #CCD0D5;}
 QTableWidget::item:selected{background:#3498DB;}
-QHeaderView::section{background:#1A1A24;color:#A1A1AA;
+QHeaderView::section{background:#E4E6EB;color:#606770;
     padding:9px;border:none;font-weight:bold;}
 QLineEdit,QComboBox,QSpinBox,QDoubleSpinBox,QDateEdit{
-    background:#2D2D3F;border:1px solid #3E3E55;border-radius:6px;
-    padding:6px 10px;color:white;font-size:13px;}
+    background:#F0F2F5;border:1px solid #CCD0D5;border-radius:6px;
+    padding:6px 10px;color: #1C1E21;font-size:13px;}
 QLineEdit:focus{border-color:#3498DB;}
 QComboBox::drop-down{border:none;}
-QComboBox QAbstractItemView{background:#2D2D3F;color:white;
+QComboBox QAbstractItemView{background:#F0F2F5;color: #1C1E21;
     selection-background-color:#3498DB;}
-QScrollBar:vertical{background:#1A1A24;width:7px;border-radius:4px;}
-QScrollBar::handle:vertical{background:#3E3E55;border-radius:4px;}
+QScrollBar:vertical{background:#E4E6EB;width:7px;border-radius:4px;}
+QScrollBar::handle:vertical{background:#CCD0D5;border-radius:4px;}
 """
 
 def _btn(t, c, h=36):
     b = QPushButton(t); b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"background:{c};color:white;font-weight:bold;"
+        f"background:{c};color: #1C1E21;font-weight:bold;"
         f"border-radius:6px;font-size:12px;padding:0 10px;"
     )
     return b
@@ -69,7 +69,7 @@ def _lbl(t, c="white", s=13, bold=False):
     return l
 
 def _fl(t):
-    l = QLabel(t); l.setStyleSheet("color:#A1A1AA;"); return l
+    l = QLabel(t); l.setStyleSheet("color:#606770;"); return l
 
 def tinh_hang(chi_tieu: float) -> str:
     for h, n, _ in HANG_CONFIG:
@@ -89,7 +89,7 @@ def gen_code(prefix="VC") -> str:
 # FORM THÊM / SỬA KHÁCH HÀNG
 # ═══════════════════════════════════════════════════════════════════════════════
 class CustomerForm(QDialog):
-    def __init__(self, kh_id=None, ten_mac_dinh="", parent=None):
+    def __init__(self, kh_id=None, ten_mac_dinh="", sdt_mac_dinh="", parent=None):
         super().__init__(parent)
         self.kh_id = kh_id
         self.setWindowTitle("Thêm Khách Hàng" if not kh_id else "Sửa Thông Tin Khách Hàng")
@@ -108,6 +108,8 @@ class CustomerForm(QDialog):
 
         if ten_mac_dinh:
             self.txt_ten.setText(ten_mac_dinh)
+        if sdt_mac_dinh:
+            self.txt_sdt.setText(sdt_mac_dinh)
 
         form.addRow(_fl("Họ tên *:"),      self.txt_ten)
         form.addRow(_fl("Số điện thoại:"), self.txt_sdt)
@@ -254,12 +256,12 @@ class RedeemDialog(QDialog):
         self.setWindowTitle(f"🎁 Đổi Điểm — {ten_kh}")
         self.resize(680, 520)
         self.setStyleSheet(STYLE + """
-            QFrame#card { background:#252538; border-radius:10px;
-                border:1px solid #3E3E55; }
+            QFrame#card { background:#F0F2F5; border-radius:10px;
+                border:1px solid #CCD0D5; }
             QFrame#card:hover { border-color:#E67E22; }
-            QListWidget { background:#2D2D3F; border:1px solid #3E3E55;
-                border-radius:8px; color:white; font-size:13px; }
-            QListWidget::item { padding:10px 12px; border-bottom:1px solid #3E3E55; }
+            QListWidget { background:#F0F2F5; border:1px solid #CCD0D5;
+                border-radius:8px; color: #1C1E21; font-size:13px; }
+            QListWidget::item { padding:10px 12px; border-bottom:1px solid #CCD0D5; }
             QListWidget::item:selected { background:#E67E22; color:white; }
         """)
 
@@ -283,7 +285,7 @@ class RedeemDialog(QDialog):
         from PySide6.QtWidgets import QSplitter, QListWidget, QListWidgetItem, QScrollArea
         splitter = QSplitter(Qt.Horizontal)
         splitter.setHandleWidth(2)
-        splitter.setStyleSheet("QSplitter::handle{background:#3E3E55;}")
+        splitter.setStyleSheet("QSplitter::handle{background:#CCD0D5;}")
 
         # Trái: lọc + danh sách
         left = QWidget(); left.setStyleSheet("background:transparent;")
@@ -296,7 +298,7 @@ class RedeemDialog(QDialog):
         self.txt_search.textChanged.connect(self._filter_list)
         lv.addWidget(self.txt_search)
 
-        lv.addWidget(_lbl("Chọn ưu đãi muốn đổi:", "#A1A1AA", 12))
+        lv.addWidget(_lbl("Chọn ưu đãi muốn đổi:", "#606770", 12))
         from PySide6.QtWidgets import QListWidget, QListWidgetItem
         self.lst = QListWidget()
         self.lst.currentRowChanged.connect(self._on_select)
@@ -306,16 +308,16 @@ class RedeemDialog(QDialog):
         # Phải: preview card
         right = QWidget(); right.setStyleSheet("background:transparent;")
         rv = QVBoxLayout(right); rv.setContentsMargins(6,0,0,0); rv.setSpacing(10)
-        rv.addWidget(_lbl("👁  XEM TRƯỚC", "#A1A1AA", 11, True))
+        rv.addWidget(_lbl("👁  XEM TRƯỚC", "#606770", 11, True))
 
         self.preview = QLabel()
         self.preview.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.preview.setWordWrap(True)
         self.preview.setTextFormat(Qt.RichText)
         self.preview.setStyleSheet(
-            "background:#1A1A2A;border-radius:10px;"
-            "border:1px solid #3E3E55;padding:16px;"
-            "color:white;font-size:13px;"
+            "background:#E4E6EB;border-radius:10px;"
+            "border:1px solid #CCD0D5;padding:16px;"
+            "color: #1C1E21;font-size:13px;"
         )
         self.preview.setMinimumHeight(200)
         rv.addWidget(self.preview)
@@ -325,15 +327,15 @@ class RedeemDialog(QDialog):
         self._diem_manual_row.setStyleSheet("background:transparent;")
         dr = QHBoxLayout(self._diem_manual_row)
         dr.setContentsMargins(0,0,0,0); dr.setSpacing(8)
-        dr.addWidget(_lbl("Số điểm trừ:", "#A1A1AA", 12))
+        dr.addWidget(_lbl("Số điểm trừ:", "#606770", 12))
         self.sp_diem_manual = QSpinBox()
         self.sp_diem_manual.setRange(0, 999_999)
         self.sp_diem_manual.setValue(0)
         self.sp_diem_manual.setSuffix(" điểm")
         self.sp_diem_manual.setSpecialValueText("Không trừ điểm")
         self.sp_diem_manual.setStyleSheet(
-            "background:#2D2D3F;border:1px solid #3E3E55;border-radius:6px;"
-            "padding:6px 10px;color:white;font-size:13px;"
+            "background:#F0F2F5;border:1px solid #CCD0D5;border-radius:6px;"
+            "padding:6px 10px;color: #1C1E21;font-size:13px;"
         )
         self.sp_diem_manual.setMaximum(diem_hien)
         self.sp_diem_manual.valueChanged.connect(self._on_manual_diem_changed)
@@ -342,7 +344,7 @@ class RedeemDialog(QDialog):
         rv.addWidget(self._diem_manual_row)
 
         # Ghi chú thêm
-        rv.addWidget(_lbl("Ghi chú (tuỳ chọn):", "#A1A1AA", 11))
+        rv.addWidget(_lbl("Ghi chú (tuỳ chọn):", "#606770", 11))
         self.txt_note = QLineEdit()
         self.txt_note.setPlaceholderText("VD: Khách đổi quà sinh nhật...")
         rv.addWidget(self.txt_note)
@@ -353,7 +355,7 @@ class RedeemDialog(QDialog):
 
         # ── Nút xác nhận ────────────────────────────────────────
         btn_row = QHBoxLayout()
-        btn_cancel = _btn("✖ Hủy", "#555577", 44)
+        btn_cancel = _btn("✖ Hủy", "#CCD0D5", 44)
         btn_cancel.clicked.connect(self.reject)
         self.btn_redeem = _btn("🎁  Xác nhận đổi điểm", "#E67E22", 44)
         self.btn_redeem.setEnabled(False)
@@ -437,7 +439,7 @@ class RedeemDialog(QDialog):
             it = QListWidgetItem(f"{icon}  {d['ten']}\n     {uu_dai}{diem_str}")
             it.setData(Qt.UserRole, d)
             if not du_diem:
-                it.setForeground(QColor("#7070A0"))
+                it.setForeground(QColor("#606770"))
             self.lst.addItem(it)
         self.lst.blockSignals(False)
         # Auto-select first item → trigger preview
@@ -447,7 +449,7 @@ class RedeemDialog(QDialog):
         else:
             self._sel_km = None
             self.preview.setText(
-                "<div style='color:#7070A0;text-align:center;padding:40px;'>"
+                "<div style='color:#606770;text-align:center;padding:40px;'>"
                 "⚠️ Chưa có chương trình đổi điểm nào.<br><br>"
                 "<span style='font-size:12px;'>Vào <b>Quản lý Khuyến Mãi</b> → "
                 "chọn loại <b>🔢 Đổi Điểm</b> để tạo chương trình.</span>"
@@ -521,7 +523,7 @@ class RedeemDialog(QDialog):
         if d["diem_can"] > 0:
             con_lai = self.diem_hien - d["diem_can"]
             diem_html = f"""
-            <div style='background:#1A1A2E;border-radius:6px;padding:8px 12px;margin:8px 0;'>
+            <div style='background:#FFFFFF;border-radius:6px;padding:8px 12px;margin:8px 0;'>
               🔢 Điểm cần dùng: <b style='color:#F1C40F;font-size:16px;'>{d['diem_can']:,}</b> điểm<br>
               📊 Điểm hiện có: <b>{self.diem_hien:,}</b> điểm<br>
               💳 Còn lại sau đổi: <b style='color:{"#2ECC71" if con_lai >= 0 else "#E74C3C"};'>
@@ -530,16 +532,16 @@ class RedeemDialog(QDialog):
         elif diem_tru_thuc > 0:
             con_lai = self.diem_hien - diem_tru_thuc
             diem_html = f"""
-            <div style='background:#1A1A2E;border-radius:6px;padding:8px 12px;margin:8px 0;'>
+            <div style='background:#FFFFFF;border-radius:6px;padding:8px 12px;margin:8px 0;'>
               🔢 Điểm sẽ trừ: <b style='color:#F1C40F;font-size:16px;'>{diem_tru_thuc:,}</b> điểm<br>
               📊 Điểm hiện có: <b>{self.diem_hien:,}</b> điểm<br>
               💳 Còn lại sau đổi: <b style='color:#2ECC71;'>{max(0, con_lai):,}</b> điểm
             </div>"""
         else:
             diem_html = f"""
-            <div style='background:#1A1A2E;border-radius:6px;padding:8px 12px;margin:8px 0;'>
+            <div style='background:#FFFFFF;border-radius:6px;padding:8px 12px;margin:8px 0;'>
               📊 Điểm hiện có: <b>{self.diem_hien:,}</b> điểm<br>
-              <span style='color:#A1A1AA;font-size:12px;'>Nhập số điểm muốn dùng ở ô bên dưới (0 = không trừ điểm)</span>
+              <span style='color:#606770;font-size:12px;'>Nhập số điểm muốn dùng ở ô bên dưới (0 = không trừ điểm)</span>
             </div>"""
 
         gio_html = ""
@@ -547,13 +549,13 @@ class RedeemDialog(QDialog):
             gio_html = f"<br>🕐 Happy Hour: <b>{d['gio_tu'].strftime('%H:%M')}–{d['gio_den'].strftime('%H:%M')}</b>"
 
         mo_ta_html = (
-            f"<p style='color:#A1A1AA;font-size:12px;margin:4px 0;'>{d['mo_ta']}</p>"
+            f"<p style='color:#606770;font-size:12px;margin:4px 0;'>{d['mo_ta']}</p>"
             if d["mo_ta"] else ""
         )
 
         html = f"""
         <div style='font-family:sans-serif;'>
-          <b style='font-size:15px;color:#E8E8F0;'>{d['ten']}</b><br>
+          <b style='font-size:15px;color:#1C1E21;'>{d['ten']}</b><br>
           {mo_ta_html}
           <div style='text-align:center;padding:12px 0;'>
             {uu_dai_html}
@@ -689,9 +691,9 @@ class IssueVoucherDialog(QDialog):
         self.setWindowTitle(f"🎁 Phát Voucher — {ten_kh}")
         self.resize(660, 520)
         self.setStyleSheet(STYLE + """
-            QListWidget { background:#2D2D3F; border:1px solid #3E3E55;
-                border-radius:8px; color:white; font-size:13px; }
-            QListWidget::item { padding:10px 12px; border-bottom:1px solid #3E3E55; }
+            QListWidget { background:#F0F2F5; border:1px solid #CCD0D5;
+                border-radius:8px; color: #1C1E21; font-size:13px; }
+            QListWidget::item { padding:10px 12px; border-bottom:1px solid #CCD0D5; }
             QListWidget::item:selected { background:#27AE60; color:white; }
         """)
 
@@ -702,7 +704,7 @@ class IssueVoucherDialog(QDialog):
         hdr = QHBoxLayout()
         hdr.addWidget(_lbl("🎁  PHÁT VOUCHER", "#8E44AD", 15, True))
         hdr.addStretch()
-        hdr.addWidget(_lbl(f"Khách: {ten_kh}", "#A1A1AA", 12))
+        hdr.addWidget(_lbl(f"Khách: {ten_kh}", "#606770", 12))
         root.addLayout(hdr)
 
         # ── Nội dung: Chọn Voucher Riêng ────────────────────────
@@ -712,17 +714,17 @@ class IssueVoucherDialog(QDialog):
 
         vkm.addWidget(_lbl(
             "Chọn voucher riêng để phát cho khách này.",
-            "#A1A1AA", 12
+            "#606770", 12
         ))
 
         # Splitter: trái = list KM | phải = preview
         splitter = QSplitter(Qt.Horizontal)
         splitter.setHandleWidth(2)
-        splitter.setStyleSheet("QSplitter::handle{background:#3E3E55;}")
+        splitter.setStyleSheet("QSplitter::handle{background:#CCD0D5;}")
 
         left_w = QWidget(); left_w.setStyleSheet("background:transparent;")
         lv = QVBoxLayout(left_w); lv.setContentsMargins(0,0,4,0); lv.setSpacing(6)
-        lv.addWidget(_lbl("Voucher Riêng đang chạy:", "#A1A1AA", 11))
+        lv.addWidget(_lbl("Voucher Riêng đang chạy:", "#606770", 11))
 
         from PySide6.QtWidgets import QListWidget, QListWidgetItem
         self.lst_km = QListWidget()
@@ -731,7 +733,7 @@ class IssueVoucherDialog(QDialog):
 
         # Hạn sử dụng voucher sẽ phát
         het_row = QHBoxLayout()
-        het_row.addWidget(_lbl("Hạn sử dụng voucher:", "#A1A1AA", 11))
+        het_row.addWidget(_lbl("Hạn sử dụng voucher:", "#606770", 11))
         self.de_het_km = QDateEdit(QDate.currentDate().addDays(30))
         self.de_het_km.setCalendarPopup(True)
         self.de_het_km.setDisplayFormat("dd/MM/yyyy")
@@ -741,14 +743,14 @@ class IssueVoucherDialog(QDialog):
 
         right_w = QWidget(); right_w.setStyleSheet("background:transparent;")
         rv = QVBoxLayout(right_w); rv.setContentsMargins(4,0,0,0); rv.setSpacing(8)
-        rv.addWidget(_lbl("👁  Xem trước:", "#A1A1AA", 11, True))
+        rv.addWidget(_lbl("👁  Xem trước:", "#606770", 11, True))
         self.preview_km = QLabel()
         self.preview_km.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.preview_km.setWordWrap(True)
         self.preview_km.setTextFormat(Qt.RichText)
         self.preview_km.setStyleSheet(
-            "background:#1A1A2A;border-radius:10px;border:1px solid #3E3E55;"
-            "padding:16px;color:white;font-size:13px;"
+            "background:#E4E6EB;border-radius:10px;border:1px solid #CCD0D5;"
+            "padding:16px;color: #1C1E21;font-size:13px;"
         )
         self.preview_km.setMinimumHeight(180)
         rv.addWidget(self.preview_km, stretch=1)
@@ -760,7 +762,7 @@ class IssueVoucherDialog(QDialog):
 
         # ── Nút ─────────────────────────────────────────────────
         btn_row = QHBoxLayout(); btn_row.setSpacing(8)
-        btn_cancel = _btn("✖ Hủy", "#555577", 44)
+        btn_cancel = _btn("✖ Hủy", "#CCD0D5", 44)
         btn_cancel.clicked.connect(self.reject)
         self.btn_issue = _btn("🎁  Phát Voucher", "#27AE60", 44)
         self.btn_issue.clicked.connect(self._issue)
@@ -818,11 +820,11 @@ class IssueVoucherDialog(QDialog):
         self.lst_km.clear()
         if not result:
             it = QListWidgetItem("— Chưa có Voucher Riêng nào đang chạy —")
-            it.setForeground(QColor("#A1A1AA"))
+            it.setForeground(QColor("#606770"))
             it.setFlags(Qt.ItemIsEnabled)
             self.lst_km.addItem(it)
             self.preview_km.setText(
-                "<div style='color:#7070A0;padding:30px;text-align:center;'>"
+                "<div style='color:#606770;padding:30px;text-align:center;'>"
                 "Hãy tạo KM loại <b>Voucher Riêng</b> trong<br>"
                 "Quản lý Khuyến Mãi → chip <b>👤 Voucher Riêng</b> trước.</div>"
             )
@@ -847,7 +849,7 @@ class IssueVoucherDialog(QDialog):
             self.de_het_km.setDate(QDate(d["het_km"].year, d["het_km"].month, d["het_km"].day))
 
         # Preview
-        mo_ta_html = (f"<p style='color:#A1A1AA;font-size:12px;margin:4px 0;'>{d['mo_ta']}</p>"
+        mo_ta_html = (f"<p style='color:#606770;font-size:12px;margin:4px 0;'>{d['mo_ta']}</p>"
                       if d["mo_ta"] else "")
         if d["kieu"] == "PhanTram":
             uu_html = f"<b style='color:#E74C3C;font-size:24px;'>{int(d['gia_tri'])}% OFF</b>"
@@ -857,18 +859,18 @@ class IssueVoucherDialog(QDialog):
             uu_html = f"<b style='color:#E74C3C;font-size:22px;'>−{int(d['gia_tri']):,}đ</b>"
 
         dk_html = (
-            f"<div style='background:#1A1A2E;border-radius:6px;padding:8px 12px;margin:8px 0;"
+            f"<div style='background:#FFFFFF;border-radius:6px;padding:8px 12px;margin:8px 0;"
             f"font-size:12px;'>Đơn tối thiểu: <b>{int(d['dk_min']):,}đ</b></div>"
             if d["dk_min"] else ""
         )
         code_preview = gen_code()
         self.preview_km.setText(f"""
         <div style='font-family:sans-serif;'>
-            <b style='font-size:14px;color:#E8E8F0;'>{d['ten']}</b><br>
+            <b style='font-size:14px;color:#1C1E21;'>{d['ten']}</b><br>
             {mo_ta_html}
             <div style='text-align:center;padding:10px 0;'>{uu_html}</div>
             {dk_html}
-            <div style='background:#2A1A3A;border-radius:6px;padding:8px 12px;font-size:12px;'>
+            <div style='background:#F0F2F5;border-radius:6px;padding:8px 12px;font-size:12px;'>
               Voucher sẽ tạo:<br>
               Mã: <b style='color:#F1C40F;font-family:monospace;'>{code_preview}</b><br>
               Khách: <b style='color:#A569BD;'>{self.ten_kh}</b>
@@ -1229,7 +1231,7 @@ class CustomerManagerDialog(QDialog):
             self.tbl_vc.setItem(i, 5, QTableWidgetItem(r["het"]))
             tt_it = QTableWidgetItem(r["tt"])
             tt_it.setForeground(QColor(
-                {"Chưa dùng": "#2ECC71", "Đã dùng": "#A1A1AA", "Hết hạn": "#E74C3C"}.get(r["tt"], "white")
+                {"Chưa dùng": "#2ECC71", "Đã dùng": "#606770", "Hết hạn": "#E74C3C"}.get(r["tt"], "white")
             ))
             self.tbl_vc.setItem(i, 6, tt_it)
 

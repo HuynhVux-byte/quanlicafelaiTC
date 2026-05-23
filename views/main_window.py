@@ -36,8 +36,8 @@ class ProductCard(QFrame):
         self.click_callback = click_callback
 
         self.setStyleSheet("""
-            ProductCard { background-color: #2D2D3F; border-radius: 12px; border: 1px solid #3E3E55; }
-            ProductCard:hover { border: 2px solid #3498DB; background-color: #35354A; }
+            ProductCard { background-color: #F0F2F5; border-radius: 12px; border: 1px solid #CCD0D5; }
+            ProductCard:hover { border: 2px solid #3498DB; background-color: #D8DADF; }
         """)
 
         layout = QHBoxLayout(self)
@@ -60,7 +60,7 @@ class ProductCard(QFrame):
                 pixmap = pixmap.copy(x, y, 65, 65)
             img_label.setPixmap(pixmap)
             img_label.setStyleSheet(
-                "background-color: #1E1E2E; border-radius: 12px; border: none;"
+                "background-color: #FFFFFF; border-radius: 12px; border: none;"
             )
         else:
             # Fallback icon tự động theo tên món
@@ -80,7 +80,7 @@ class ProductCard(QFrame):
                 icon = "🍟"
             img_label.setText(icon)
             img_label.setStyleSheet(
-                "background-color: #1E1E2E; border-radius: 12px; font-size: 35px; border: none;"
+                "background-color: #FFFFFF; border-radius: 12px; font-size: 35px; border: none;"
             )
 
         layout.addWidget(img_label)
@@ -90,13 +90,13 @@ class ProductCard(QFrame):
 
         name_lbl = QLabel(product.ten_sp)
         name_lbl.setStyleSheet(
-            "color: white; font-weight: bold; font-size: 14px; border: none;"
+            "color: #1C1E21; font-weight: bold; font-size: 16px; border: none;"
         )
         name_lbl.setWordWrap(True)
 
         price_lbl = QLabel(f"{product.gia_ban:,.0f} đ")
         price_lbl.setStyleSheet(
-            "color: #F1C40F; font-size: 13px; font-weight: bold; border: none;"
+            "color: #F1C40F; font-size: 15px; font-weight: bold; border: none;"
         )
 
         stock_lbl = QLabel()
@@ -104,11 +104,11 @@ class ProductCard(QFrame):
         if available_qty == 0:
             stock_lbl.setText("HẾT HÀNG")
             stock_lbl.setStyleSheet(
-                "color: #E74C3C; font-size: 11px; font-weight: bold; border: none;"
+                "color: #E74C3C; font-size: 13px; font-weight: bold; border: none;"
             )
             self.setEnabled(False)
             self.setStyleSheet(
-                "ProductCard { background-color: #1A1A24; border-radius: 12px;"
+                "ProductCard { background-color: #E4E6EB; border-radius: 12px;"
                 " border: 1px solid #E74C3C; }"
             )
         elif available_qty == -1:
@@ -116,7 +116,7 @@ class ProductCard(QFrame):
         else:
             stock_lbl.setText(f"Còn: {int(available_qty)} ly")
             stock_lbl.setStyleSheet(
-                "color: #2ECC71; font-size: 11px; font-weight: bold; border: none;"
+                "color: #2ECC71; font-size: 13px; font-weight: bold; border: none;"
             )
 
         info_layout.addWidget(name_lbl)
@@ -202,7 +202,7 @@ class POSWindow(QMainWindow):
         self._co_ca = self._kiem_tra_co_ca()
         self.setWindowTitle("Hệ Thống Quản Lý Quán Cà Phê")
         self.resize(1200, 750)
-        self.setStyleSheet("background-color: #1E1E2E; color: white;")
+        self.setStyleSheet("background-color: #FFFFFF; color: #1C1E21;")
 
         # Ghi nhật ký đăng nhập vào POS
         _log(self.user.id, "Đăng nhập POS",
@@ -217,12 +217,12 @@ class POSWindow(QMainWindow):
 
         # ── NỬA TRÁI: MENU ──────────────────────────────────────────
         left_panel = QWidget()
-        left_panel.setStyleSheet("background-color: #1A1A24; border-radius: 15px;")
+        left_panel.setStyleSheet("background-color: #E4E6EB; border-radius: 15px;")
         left_layout = QVBoxLayout(left_panel)
 
         header_layout = QHBoxLayout()
         title_lbl = QLabel("📋 DANH MỤC MÓN")
-        title_lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #3498DB;")
+        title_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #3498DB;")
         header_layout.addWidget(title_lbl)
 
         # Nút CHECK-OUT CA (kết thúc ca làm, tính công)
@@ -250,10 +250,10 @@ class POSWindow(QMainWindow):
         self.search_bar.setPlaceholderText("🔍 Nhập tên món để tìm kiếm nhanh...")
         self.search_bar.setStyleSheet("""
             QLineEdit {
-                background-color: #2D2D3F; border: 1px solid #3E3E55;
-                border-radius: 20px; padding: 10px 15px; color: white; font-size: 14px;
+                background-color: #F0F2F5; border: 1px solid #CCD0D5;
+                border-radius: 20px; padding: 10px 15px; color: #1C1E21; font-size: 16px;
             }
-            QLineEdit:focus { border: 1px solid #3498DB; background-color: #35354A; }
+            QLineEdit:focus { border: 1px solid #3498DB; background-color: #D8DADF; }
         """)
         self.search_bar.textChanged.connect(self.filter_products)
         left_layout.addWidget(self.search_bar)
@@ -325,11 +325,11 @@ class POSWindow(QMainWindow):
 
         # ── NỬA PHẢI: HÓA ĐƠN ──────────────────────────────────────
         right_panel = QWidget()
-        right_panel.setStyleSheet("background-color: #1A1A24; border-radius: 15px;")
+        right_panel.setStyleSheet("background-color: #E4E6EB; border-radius: 15px;")
         self.right_layout = QVBoxLayout(right_panel)
 
         inv_title = QLabel("🧾 HÓA ĐƠN")
-        inv_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #2ECC71;")
+        inv_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2ECC71;")
         inv_title.setAlignment(Qt.AlignCenter)
         self.right_layout.addWidget(inv_title)
 
@@ -347,7 +347,7 @@ class POSWindow(QMainWindow):
         self.btn_apply_km.setMinimumHeight(36)
         self.btn_apply_km.setStyleSheet(
             "background-color: #E67E22; color: white; font-weight: bold;"
-            " border-radius: 8px; font-size: 13px;"
+            " border-radius: 8px; font-size: 15px;"
         )
         self.btn_apply_km.clicked.connect(self._apply_khuyen_mai)
         action_row.addWidget(self.btn_apply_km)
@@ -356,7 +356,7 @@ class POSWindow(QMainWindow):
         self.btn_loyalty.setMinimumHeight(36)
         self.btn_loyalty.setStyleSheet(
             "background-color: #8E44AD; color: white; font-weight: bold;"
-            " border-radius: 8px; font-size: 13px;"
+            " border-radius: 8px; font-size: 15px;"
         )
         self.btn_loyalty.clicked.connect(self._open_loyalty)
         action_row.addWidget(self.btn_loyalty)
@@ -366,7 +366,7 @@ class POSWindow(QMainWindow):
         # Label hiển thị KM đang áp dụng (ẩn khi chưa có)
         self.lbl_km_applied = QLabel("")
         self.lbl_km_applied.setStyleSheet(
-            "background-color: #2D2D3F; border: 1px solid #E67E22;"
+            "background-color: #F0F2F5; border: 1px solid #E67E22;"
             " border-radius: 6px; padding: 6px 10px;"
             " font-size: 12px; color: #E67E22;"
         )
@@ -377,7 +377,7 @@ class POSWindow(QMainWindow):
         # Label hiển thị khách thành viên đang liên kết (ẩn khi chưa có)
         self.lbl_loyalty_info = QLabel("")
         self.lbl_loyalty_info.setStyleSheet(
-            "background-color: #2D2D3F; border: 1px solid #8E44AD;"
+            "background-color: #F0F2F5; border: 1px solid #8E44AD;"
             " border-radius: 6px; padding: 6px 10px;"
             " font-size: 12px; color: #C39BD3;"
         )
@@ -387,7 +387,7 @@ class POSWindow(QMainWindow):
 
         self.total_label = QLabel("Tổng cộng: 0 Đ")
         self.total_label.setStyleSheet(
-            "font-size: 20px; font-weight: bold; color: #E74C3C; background-color: transparent;"
+            "font-size: 24px; font-weight: bold; color: #E74C3C; background-color: transparent;"
         )
         self.right_layout.addWidget(self.total_label)
 
@@ -483,13 +483,13 @@ class POSWindow(QMainWindow):
         menu = QMenu(self)
         menu.setStyleSheet("""
             QMenu {
-                background-color: #2D2D3F; color: white;
-                border: 1px solid #3E3E55; border-radius: 8px;
+                background-color: #F0F2F5; color: #1C1E21;
+                border: 1px solid #CCD0D5; border-radius: 8px;
                 padding: 6px 0;
             }
             QMenu::item { padding: 10px 24px; font-size: 13px; font-weight: bold; }
             QMenu::item:selected { background-color: #3498DB; border-radius: 4px; }
-            QMenu::separator { height: 1px; background: #3E3E55; margin: 4px 12px; }
+            QMenu::separator { height: 1px; background: #CCD0D5; margin: 4px 12px; }
         """)
 
         def _add(icon, label, slot, quyen):
@@ -566,19 +566,19 @@ class POSWindow(QMainWindow):
             btn.setStyleSheet(
                 "QPushButton {"
                 " background-color: #3498DB; color: white; font-weight: bold;"
-                " border-radius: 17px; font-size: 12px; padding: 0 16px;"
+                " border-radius: 17px; font-size: 14px; padding: 0 16px;"
                 " border: none;"
                 "}"
             )
         else:
             btn.setStyleSheet(
                 "QPushButton {"
-                " background-color: #2D2D3F; color: #A1A1AA; font-weight: bold;"
-                " border-radius: 17px; font-size: 12px; padding: 0 16px;"
-                " border: 1px solid #3E3E55;"
+                " background-color: #F0F2F5; color: #606770; font-weight: bold;"
+                " border-radius: 17px; font-size: 14px; padding: 0 16px;"
+                " border: 1px solid #CCD0D5;"
                 "}"
                 "QPushButton:hover {"
-                " background-color: #35354A; color: white; border: 1px solid #3498DB;"
+                " background-color: #D8DADF; color: white; border: 1px solid #3498DB;"
                 "}"
             )
 
@@ -648,14 +648,14 @@ class POSWindow(QMainWindow):
 
                 lbl = QLabel(f"  {cat_name}")
                 lbl.setStyleSheet(
-                    "color: #3498DB; font-size: 13px; font-weight: bold;"
+                    "color: #3498DB; font-size: 16px; font-weight: bold;"
                     " background: transparent; border: none;"
                 )
                 h_layout.addWidget(lbl)
 
                 line = QFrame()
                 line.setFrameShape(QFrame.HLine)
-                line.setStyleSheet("color: #3E3E55; background-color: #3E3E55; border: none;")
+                line.setStyleSheet("color: #CCD0D5; background-color: #CCD0D5; border: none;")
                 line.setFixedHeight(1)
                 h_layout.addWidget(line, stretch=1)
 
@@ -749,10 +749,10 @@ class POSWindow(QMainWindow):
         total_to_pay = max(0, subtotal - self._km_discount)
         self.total_label.setText(
             f"<div style='text-align:right; background-color:transparent;'>"
-            f"<span style='font-size:14px; color:#BDC3C7;'>Tổng tiền món: {int(grand_total):,.0f} đ</span><br>"
-            f"<span style='font-size:14px; color:#E74C3C;'>Thuế VAT (10%): +{int(tax):,.0f} đ</span><br>"
+            f"<span style='font-size:16px; color:#BDC3C7;'>Tổng tiền món: {int(grand_total):,.0f} đ</span><br>"
+            f"<span style='font-size:16px; color:#E74C3C;'>Thuế VAT (10%): +{int(tax):,.0f} đ</span><br>"
             f"{km_line}"
-            f"<b style='font-size:24px; color:#27AE60;'>CẦN THANH TOÁN: {int(total_to_pay):,.0f} Đ</b>"
+            f"<b style='font-size:26px; color:#27AE60;'>CẦN THANH TOÁN: {int(total_to_pay):,.0f} Đ</b>"
             f"</div>"
         )
 
@@ -836,7 +836,7 @@ class POSWindow(QMainWindow):
         qty_lbl.setAlignment(Qt.AlignCenter)
         qty_lbl.setMinimumWidth(24)
         qty_lbl.setStyleSheet(
-            "color: white; font-weight: bold; font-size: 13px; background: transparent;"
+            "color: #1C1E21; font-weight: bold; font-size: 13px; background: transparent;"
         )
         qty_lbl.setObjectName(f"qty_lbl_{row}")
 
@@ -990,12 +990,12 @@ class POSWindow(QMainWindow):
         dlg.setWindowTitle(f"⚙️  Tùy chỉnh: {mon_name}")
         dlg.setFixedWidth(440)
         dlg.setStyleSheet("""
-            QDialog { background-color: #1E1E2E; color: white; }
-            QLabel  { color: white; font-size: 13px; }
+            QDialog { background-color: #FFFFFF; color: #1C1E21; }
+            QLabel  { color: #1C1E21; font-size: 13px; }
             QLineEdit {
-                background: #2D2D3F; border: 1px solid #3E3E55;
+                background: #F0F2F5; border: 1px solid #CCD0D5;
                 border-radius: 6px; padding: 7px 10px;
-                color: white; font-size: 13px;
+                color: #1C1E21; font-size: 13px;
             }
             QLineEdit:focus { border-color: #3498DB; }
             QPushButton {
@@ -1025,17 +1025,17 @@ class POSWindow(QMainWindow):
                 selected[0] = txt
                 for t, b in btns.items():
                     active = (t == txt)
-                    bg = colors.get(t, "#3498DB") if active else "#2D2D3F"
-                    border = colors.get(t, "#3498DB") if active else "#3E3E55"
+                    bg = colors.get(t, "#3498DB") if active else "#F0F2F5"
+                    border = colors.get(t, "#3498DB") if active else "#CCD0D5"
                     b.setStyleSheet(
-                        f"background:{bg}; color:white; border:2px solid {border};"
+                        f"background:{bg}; color: #1C1E21; border:2px solid {border};"
                         f" border-radius:6px; font-size:12px; font-weight:bold; padding:6px 10px;"
                     )
 
             for opt in options:
                 b = QPushButton(opt)
                 b.setCursor(Qt.PointingHandCursor)
-                b.clicked.connect(lambda _, t=opt: _select(t))
+                b.clicked.connect(lambda checked=False, t=opt: _select(t))
                 btns[opt] = b
                 layout.addWidget(b)
 
@@ -1084,9 +1084,9 @@ class POSWindow(QMainWindow):
         for i, (tp_name, _) in enumerate(topping_opts):
             cb = QCheckBox(tp_name)
             cb.setStyleSheet("""
-                QCheckBox { color:white; font-size:12px; spacing:6px; }
+                QCheckBox { color: #1C1E21; font-size:12px; spacing:6px; }
                 QCheckBox::indicator { width:16px; height:16px; border-radius:4px;
-                    border:2px solid #3E3E55; background:#1E1E2E; }
+                    border:2px solid #CCD0D5; background:#FFFFFF; }
                 QCheckBox::indicator:checked { background:#27AE60; border-color:#27AE60; }
                 QCheckBox::indicator:hover   { border-color:#3498DB; }
             """)
@@ -1117,7 +1117,7 @@ class POSWindow(QMainWindow):
         btn_clear = QPushButton("🗑  Xóa tùy chỉnh")
         btn_clear.setMinimumHeight(40)
         btn_clear.setStyleSheet(
-            "background:#7F8C8D;color:white;font-weight:bold;"
+            "background:#7F8C8D;color: #1C1E21;font-weight:bold;"
             "border-radius:8px;font-size:13px;"
         )
         btn_cancel = QPushButton("✖  Đóng")
@@ -1193,7 +1193,7 @@ class POSWindow(QMainWindow):
         # Đặt widget hiển thị (read-only label style)
         note_lbl = QLabel(f"  📝 {note_text}")
         note_lbl.setStyleSheet(
-            "background:#1A1A24; color:#F1C40F;"
+            "background:#E4E6EB; color:#F1C40F;"
             " font-size:12px; font-style:italic; padding:4px 8px;"
         )
         note_lbl.setWordWrap(True)
@@ -1534,20 +1534,20 @@ class POSWindow(QMainWindow):
         from PySide6.QtGui import QColor, QFont as _QFont
 
         DLG_STYLE = (
-            "QDialog,QWidget{background:#1E1E2E;color:white;}"
+            "QDialog,QWidget{background:#FFFFFF;color: #1C1E21;}"
             "QLabel{background:transparent;}"
-            "QTabWidget::pane{border:none;background:#1E1E2E;}"
-            "QTabBar::tab{background:#252540;color:#8888AA;padding:9px 20px;"
+            "QTabWidget::pane{border:none;background:#FFFFFF;}"
+            "QTabBar::tab{background:#F0F2F5;color:#606770;padding:9px 20px;"
             "  border-radius:6px 6px 0 0;font-weight:bold;font-size:13px;}"
             "QTabBar::tab:selected{background:#E67E22;color:white;}"
-            "QTableWidget{background:#1E2030;border:none;border-radius:8px;"
-            "  color:white;font-size:13px;}"
-            "QTableWidget::item{padding:8px 10px;border-bottom:1px solid #2D2D4A;}"
-            "QTableWidget::item:selected{background:#2C3E60;color:white;}"
-            "QHeaderView::section{background:#252540;color:#8888AA;padding:7px 10px;"
+            "QTableWidget{background:#FFFFFF;border:none;border-radius:8px;"
+            "  color: #1C1E21;font-size:13px;}"
+            "QTableWidget::item{padding:8px 10px;border-bottom:1px solid #F0F2F5;}"
+            "QTableWidget::item:selected{background:#CCD0D5;color: #1C1E21;}"
+            "QHeaderView::section{background:#F0F2F5;color:#606770;padding:7px 10px;"
             "  border:none;font-weight:bold;font-size:12px;}"
             "QPushButton{border-radius:6px;font-weight:bold;font-size:13px;"
-            "  color:white;padding:8px 16px;border:none;}"
+            "  color: #1C1E21;padding:8px 16px;border:none;}"
         )
 
         dlg = QDialog(self)
@@ -1562,7 +1562,7 @@ class POSWindow(QMainWindow):
         hdr_lbl = QLabel("<b style='color:#E67E22;font-size:15px;'>🎉  Chọn Khuyến Mãi / Voucher</b>")
         hdr_lbl.setTextFormat(Qt.RichText)
         hdr.addWidget(hdr_lbl); hdr.addStretch()
-        total_lbl = QLabel(f"<span style='color:#A1A1AA;font-size:12px;'>Đơn: {int(subtotal):,.0f} đ</span>")
+        total_lbl = QLabel(f"<span style='color:#606770;font-size:12px;'>Đơn: {int(subtotal):,.0f} đ</span>")
         total_lbl.setTextFormat(Qt.RichText)
         hdr.addWidget(total_lbl)
         dv.addLayout(hdr)
@@ -1642,7 +1642,7 @@ class POSWindow(QMainWindow):
                 elif not d.get("du_dk", True):
                     it0.setForeground(QColor("#E74C3C"))
                 else:
-                    it0.setForeground(QColor("#E8E8F0"))
+                    it0.setForeground(QColor("#1C1E21"))
                 it0.setData(Qt.UserRole, d)
                 tbl.setItem(r, 0, it0)
 
@@ -1658,7 +1658,7 @@ class POSWindow(QMainWindow):
 
                 it_sv = QTableWidgetItem(sv)
                 it_sv.setTextAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-                it_sv.setForeground(QColor("#2ECC71") if d.get("_giam") else QColor("#666677"))
+                it_sv.setForeground(QColor("#2ECC71") if d.get("_giam") else QColor("#CCD0D5"))
                 f2 = _QFont("Segoe UI", 13, _QFont.Bold); it_sv.setFont(f2)
                 tbl.setItem(r, col_sv, it_sv)
                 row_data.append(d)
@@ -1678,7 +1678,7 @@ class POSWindow(QMainWindow):
             )
             tip.setTextFormat(Qt.RichText)
             tip.setStyleSheet(
-                "background:#2D3A2D;border:1px solid #27AE60;border-radius:6px;"
+                "background:#F0F2F5;border:1px solid #27AE60;border-radius:6px;"
                 "padding:7px 12px;font-size:12px;color:#A9DFBF;"
             )
             tc.addWidget(tip)
@@ -1686,7 +1686,7 @@ class POSWindow(QMainWindow):
             tc.addWidget(tbl_chung)
         else:
             lbl_no = QLabel("😔  Không có khuyến mãi nào phù hợp với đơn này.")
-            lbl_no.setStyleSheet("color:#A1A1AA;font-size:13px;padding:20px 0;")
+            lbl_no.setStyleSheet("color:#606770;font-size:13px;padding:20px 0;")
             lbl_no.setAlignment(Qt.AlignCenter)
             tc.addWidget(lbl_no)
             tbl_chung, chung_data = None, []
@@ -1707,7 +1707,7 @@ class POSWindow(QMainWindow):
             lbl_login.setWordWrap(True)
             lbl_login.setAlignment(Qt.AlignCenter)
             lbl_login.setStyleSheet(
-                "background:#2A1F1A;border:1px solid #E67E22;border-radius:8px;"
+                "background:#F0F2F5;border:1px solid #E67E22;border-radius:8px;"
                 "color:#E67E22;padding:24px;font-size:13px;"
             )
             tca.addWidget(lbl_login)
@@ -1719,7 +1719,7 @@ class POSWindow(QMainWindow):
             )
             kh_info.setTextFormat(Qt.RichText)
             kh_info.setStyleSheet(
-                "background:#1A2A1A;border:1px solid #27AE60;border-radius:6px;"
+                "background:#F0F2F5;border:1px solid #27AE60;border-radius:6px;"
                 "padding:8px 12px;font-size:12px;color:#A9DFBF;"
             )
             tca.addWidget(kh_info)
@@ -1733,7 +1733,7 @@ class POSWindow(QMainWindow):
             if km_doi_diem:
                 lbl_dd_title = QLabel(
                     f"<b style='color:#E67E22;'>🔢 Đổi điểm (bạn có {kh_diem:,} điểm):</b>"
-                    f"<span style='color:#A1A1AA;font-size:11px;'>"
+                    f"<span style='color:#606770;font-size:11px;'>"
                     f"  — Đúp chuột vào dòng để đổi điểm lấy voucher</span>"
                 )
                 lbl_dd_title.setTextFormat(Qt.RichText)
@@ -1990,7 +1990,7 @@ class POSWindow(QMainWindow):
                 tca.addWidget(tbl_dd)
             elif not vouchers:
                 lbl_no2 = QLabel("Chưa có voucher hoặc KM đổi điểm nào khả dụng.")
-                lbl_no2.setStyleSheet("color:#7070A0;font-size:13px;padding:12px 0;")
+                lbl_no2.setStyleSheet("color:#606770;font-size:13px;padding:12px 0;")
                 lbl_no2.setAlignment(Qt.AlignCenter)
                 tca.addWidget(lbl_no2)
 
@@ -2009,7 +2009,7 @@ class POSWindow(QMainWindow):
         # ── Nút hành động ─────────────────────────────────────────
         btn_row = QHBoxLayout(); btn_row.setSpacing(10)
         btn_cancel = QPushButton("✖ Hủy")
-        btn_cancel.setStyleSheet("background:#555566;")
+        btn_cancel.setStyleSheet("background:#CCD0D5;")
         btn_remove = QPushButton("❌ Bỏ KM / Voucher")
         btn_remove.setStyleSheet("background:#C0392B;")
         btn_ok = QPushButton("✅ Áp dụng")
@@ -2141,7 +2141,7 @@ class POSWindow(QMainWindow):
                 f"SĐT: {kh['sdt']}  |  Điểm: {kh.get('diem', 0):,}"
             )
             self.lbl_loyalty_info.setStyleSheet(
-                f"background-color: #2D2D3F; border: 1px solid {hang_color};"
+                f"background-color: #F0F2F5; border: 1px solid {hang_color};"
                 f" border-radius: 6px; padding: 6px 10px;"
                 f" font-size: 12px; color: {hang_color};"
             )
@@ -2159,15 +2159,15 @@ class POSWindow(QMainWindow):
 
         dlg = QDialog(self)
         dlg.setWindowTitle("⭐ Điểm Thành Viên")
-        dlg.resize(460, 300)
+        dlg.resize(550, 300)
         dlg.setStyleSheet(
-            "QDialog,QWidget{background:#1E1E2E;color:white;font-family:'Segoe UI';}"
+            "QDialog,QWidget{background:#FFFFFF;color: #1C1E21;font-family:'Segoe UI';}"
             "QLabel{background:transparent;}"
-            "QLineEdit{background:#2D2D3F;border:1px solid #3E3E55;border-radius:6px;"
-            "  padding:8px 12px;color:white;font-size:14px;}"
+            "QLineEdit{background:#F0F2F5;border:1px solid #CCD0D5;border-radius:6px;"
+            "  padding:8px 12px;color: #1C1E21;font-size:14px;}"
             "QLineEdit:focus{border-color:#8E44AD;}"
             "QPushButton{border-radius:6px;font-weight:bold;font-size:13px;"
-            "  color:white;padding:8px 14px;}"
+            "  color: #1C1E21;padding:8px 14px;}"
         )
         dv = QVBoxLayout(dlg)
         dv.setContentsMargins(20, 18, 20, 18)
@@ -2190,8 +2190,8 @@ class POSWindow(QMainWindow):
         lbl_result.setWordWrap(True)
         lbl_result.setTextFormat(Qt.RichText)
         lbl_result.setStyleSheet(
-            "background:#2D2D3F; border-radius:8px; padding:10px 14px;"
-            " font-size:13px; color:#ECF0F1; min-height:60px;"
+            "background:#F0F2F5; border-radius:8px; padding:10px 14px;"
+            " font-size:13px; color:#1C1E21; min-height:60px;"
         )
         dv.addWidget(lbl_result)
 
@@ -2206,17 +2206,18 @@ class POSWindow(QMainWindow):
         btn_unlink = QPushButton("🗑  Bỏ liên kết")
         btn_unlink.setStyleSheet("background:#C0392B;color:white;font-weight:bold;border-radius:6px;")
         btn_close  = QPushButton("Đóng")
-        btn_close.setStyleSheet("background:#555566;color:white;font-weight:bold;border-radius:6px;")
-
-        btn_row.addWidget(btn_search)
-        btn_row.addWidget(btn_link)
-        btn_row.addWidget(btn_unlink)
-        btn_row.addWidget(btn_close)
-        dv.addLayout(btn_row)
+        btn_close.setStyleSheet("background:#CCD0D5;color: #1C1E21;font-weight:bold;border-radius:6px;")
 
         btn_new = QPushButton("➕  Thêm TV mới")
         btn_new.setStyleSheet("background:#2980B9;color:white;font-weight:bold;border-radius:6px;")
         btn_new.setVisible(False)
+
+        btn_row.addWidget(btn_search)
+        btn_row.addWidget(btn_new)
+        btn_row.addWidget(btn_link)
+        btn_row.addWidget(btn_unlink)
+        btn_row.addWidget(btn_close)
+        dv.addLayout(btn_row)
 
         # Nếu đang có KH liên kết → điền sẵn SĐT
         if self._linked_kh:
@@ -2247,7 +2248,7 @@ class POSWindow(QMainWindow):
                     }
                     lbl_result.setText(
                         f"<b style='color:{hang_color};'>{kh.ten_kh}</b>"
-                        f"  <span style='color:#A1A1AA;'>({kh.hang_thanh_vien or 'Đồng'})</span><br>"
+                        f"  <span style='color:#606770;'>({kh.hang_thanh_vien or 'Đồng'})</span><br>"
                         f"<span style='color:#BDC3C7;'>SĐT: {kh.so_dien_thoai}"
                         f"  |  Điểm: <b style='color:#F1C40F;'>{kh.diem_tich_luy or 0:,}</b></span>"
                     )
@@ -2281,11 +2282,16 @@ class POSWindow(QMainWindow):
             dlg.accept()
 
         def _do_new():
-            """Mở CustomerManagerDialog để tạo KH mới, sau đó quay lại."""
-            dlg.reject()
-            from views.customer_manager import CustomerManagerDialog
-            cm = CustomerManagerDialog(self)
-            cm.exec()
+            """Mở thẳng CustomerForm để tạo KH mới ngay, điền sẵn SĐT."""
+            sdt = txt_sdt.text().strip()
+            from views.customer_manager import CustomerForm
+            f = CustomerForm(sdt_mac_dinh=sdt, parent=dlg)
+            if f.exec():
+                # Tạo thành công thì tự động tìm và hiển thị luôn
+                sdt_moi = f.txt_sdt.text().strip()
+                if sdt_moi:
+                    txt_sdt.setText(sdt_moi)
+                    _do_search()
 
         txt_sdt.returnPressed.connect(_do_search)
         btn_search.clicked.connect(_do_search)
@@ -2346,7 +2352,7 @@ class POSWindow(QMainWindow):
         dialog.setWindowTitle(f"Thanh toán  ·  {order_code}")
         dialog.setFixedSize(440, 600)
         dialog.setStyleSheet("""
-            QDialog { background-color: #0F1729; color: #E2E8F0; }
+            QDialog { background-color: #FFFFFF; color: #1C1E21; }
             QLabel  { border: none; background: transparent; }
             * { font-family: 'Segoe UI', 'Inter', sans-serif; }
         """)
@@ -2359,7 +2365,7 @@ class POSWindow(QMainWindow):
         hdr = QFrame(dialog)
         hdr.setStyleSheet(
             "QFrame { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-            " stop:0 #1E293B, stop:1 #0F172A);"
+            " stop:0 #FFFFFF, stop:1 #FFFFFF);"
             " border-radius: 14px; border: 1px solid #1E3A5F; }"
         )
         hdr_lay = QVBoxLayout(hdr)
@@ -2370,7 +2376,7 @@ class POSWindow(QMainWindow):
         lbl_code = QLabel(f"🧾  {order_code}")
         lbl_code.setAlignment(Qt.AlignCenter)
         lbl_code.setStyleSheet(
-            "font-size: 10px; color: #475569; letter-spacing: 2.5px;"
+            "font-size: 10px; color: #CCD0D5; letter-spacing: 2.5px;"
             " font-weight: 600; text-transform: uppercase;"
         )
         hdr_lay.addWidget(lbl_code)
@@ -2393,7 +2399,7 @@ class POSWindow(QMainWindow):
         lbl_sub = QLabel("   ·   ".join(detail_parts))
         lbl_sub.setAlignment(Qt.AlignCenter)
         lbl_sub.setStyleSheet(
-            "font-size: 10px; color: #475569; letter-spacing: 0.3px;"
+            "font-size: 10px; color: #CCD0D5; letter-spacing: 0.3px;"
         )
         hdr_lay.addWidget(lbl_sub)
 
@@ -2402,7 +2408,7 @@ class POSWindow(QMainWindow):
         # ── B. Tabs phương thức ─────────────────────────────────────────
         tab_frame = QFrame(dialog)
         tab_frame.setStyleSheet(
-            "QFrame { background:#1E293B; border-radius: 10px; border: none; }"
+            "QFrame { background:#FFFFFF; border-radius: 10px; border: none; }"
         )
         tab_frame.setFixedHeight(40)       # giảm 10% so với 44px cũ
         tab_lay = QHBoxLayout(tab_frame)
@@ -2410,14 +2416,14 @@ class POSWindow(QMainWindow):
         tab_lay.setSpacing(3)
 
         _STYLE_TAB_ON = (
-            "QPushButton { background: #1D4ED8; color: white; font-weight: 600;"
+            "QPushButton { background: #1D4ED8; color: #1C1E21; font-weight: 600;"
             " border-radius: 8px; font-size: 12px; padding: 5px 0; border: none;"
             " letter-spacing: 0.3px; }"
         )
         _STYLE_TAB_OFF = (
             "QPushButton { background: transparent; color: #64748B; font-weight: 600;"
             " border-radius: 8px; font-size: 12px; padding: 5px 0; border: none; }"
-            "QPushButton:hover { background: #0F172A; color: #94A3B8; }"
+            "QPushButton:hover { background: #FFFFFF; color: #606770; }"
         )
 
         btn_tab_qr   = QPushButton("⬡  QR / Chuyển khoản")
@@ -2440,15 +2446,15 @@ class POSWindow(QMainWindow):
         # Card nền sáng cho QR — thu nhỏ 18%
         qr_card = QFrame()
         qr_card.setStyleSheet(
-            "QFrame { background: #F8FAFC; border-radius: 14px;"
-            " border: 2px solid #E2E8F0; }"
+            "QFrame { background: #1C1E21; border-radius: 14px;"
+            " border: 2px solid #1C1E21; }"
         )
         qr_card_lay = QVBoxLayout(qr_card)
         qr_card_lay.setContentsMargins(10, 10, 10, 10)
 
         qr_label = QLabel("Đang tải mã QR…")
         qr_label.setAlignment(Qt.AlignCenter)
-        qr_label.setStyleSheet("color: #94A3B8; font-size: 12px; background: transparent;")
+        qr_label.setStyleSheet("color: #606770; font-size: 12px; background: transparent;")
         qr_label.setFixedSize(222, 222)   # 270 × 0.82 ≈ 222 (thu nhỏ ~18%)
         qr_card_lay.addWidget(qr_label, 0, Qt.AlignCenter)
         qr_vlay.addWidget(qr_card, 0, Qt.AlignCenter)
@@ -2466,7 +2472,7 @@ class POSWindow(QMainWindow):
         hint_qr = QLabel("⬡  Dùng App ngân hàng quét mã · Tự động xác nhận khi nhận tiền")
         hint_qr.setAlignment(Qt.AlignCenter)
         hint_qr.setWordWrap(True)
-        hint_qr.setStyleSheet("font-size: 10px; color: #475569; letter-spacing: 0.2px;")
+        hint_qr.setStyleSheet("font-size: 10px; color: #CCD0D5; letter-spacing: 0.2px;")
         qr_vlay.addWidget(hint_qr)
         qr_vlay.addStretch()
         stack.addWidget(pg_qr)
@@ -2481,7 +2487,7 @@ class POSWindow(QMainWindow):
         lbl_need.setAlignment(Qt.AlignCenter)
         lbl_need.setStyleSheet(
             "font-size: 15px; font-weight: 600; color: #38BDF8;"
-            " background: #1E293B; border-radius: 8px; padding: 8px 0;"
+            " background: #FFFFFF; border-radius: 8px; padding: 8px 0;"
         )
         cash_vlay.addWidget(lbl_need)
 
@@ -2493,9 +2499,9 @@ class POSWindow(QMainWindow):
         txt_given.setPlaceholderText(f"{int(total_to_pay):,}")
         txt_given.setAlignment(Qt.AlignRight)
         txt_given.setStyleSheet(
-            "background: #1E293B; border: 1px solid #334155;"
+            "background: #FFFFFF; border: 1px solid #CCD0D5;"
             " border-radius: 8px; padding: 8px 12px;"
-            " color: #F1F5F9; font-size: 15px; font-weight: 600;"
+            " color: #1C1E21; font-size: 15px; font-weight: 600;"
         )
         row_cash.addWidget(lbl_given)
         row_cash.addWidget(txt_given)
@@ -2504,8 +2510,8 @@ class POSWindow(QMainWindow):
         # Card tiền thối nổi bật
         change_card = QFrame()
         change_card.setStyleSheet(
-            "QFrame { background: #1E293B; border-radius: 10px;"
-            " border: 1px solid #334155; }"
+            "QFrame { background: #FFFFFF; border-radius: 10px;"
+            " border: 1px solid #CCD0D5; }"
         )
         change_card_lay = QHBoxLayout(change_card)
         change_card_lay.setContentsMargins(14, 10, 14, 10)
@@ -2513,7 +2519,7 @@ class POSWindow(QMainWindow):
         lbl_change_title.setStyleSheet("font-size: 12px; color: #64748B;")
         lbl_change = QLabel("—")
         lbl_change.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        lbl_change.setStyleSheet("font-size: 24px; font-weight: 700; color: #94A3B8;")
+        lbl_change.setStyleSheet("font-size: 24px; font-weight: 700; color: #606770;")
         change_card_lay.addWidget(lbl_change_title)
         change_card_lay.addStretch()
         change_card_lay.addWidget(lbl_change)
@@ -2546,9 +2552,9 @@ class POSWindow(QMainWindow):
                 "QPushButton { background: #1D4ED8; color: #BFDBFE;"
                 " border: none; border-radius: 7px;"
                 " font-size: 12px; font-weight: 600; }"
-                "QPushButton:hover { background: #2563EB; color: white; }"
+                "QPushButton:hover { background: #2563EB; color: #1C1E21; }"
             )
-            bq.clicked.connect(lambda _, a=amt: txt_given.setText(f"{a:,}"))
+            bq.clicked.connect(lambda checked=False, a=amt: txt_given.setText(f"{a:,}"))
             quick_lay.addWidget(bq, 0, i)
             all_btns.append(bq)
 
@@ -2559,10 +2565,10 @@ class POSWindow(QMainWindow):
         for i, b in enumerate([btn_exact, btn_p10, btn_p50]):
             b.setMinimumHeight(32)
             b.setStyleSheet(
-                "QPushButton { background: #0F172A; color: #94A3B8;"
-                " border: 1px solid #334155; border-radius: 7px;"
+                "QPushButton { background: #FFFFFF; color: #606770;"
+                " border: 1px solid #CCD0D5; border-radius: 7px;"
                 " font-size: 12px; font-weight: 600; }"
-                "QPushButton:hover { background: #1E293B; color: #CBD5E1; }"
+                "QPushButton:hover { background: #FFFFFF; color: #606770; }"
             )
             quick_lay.addWidget(b, 1, i)
 
@@ -2587,11 +2593,11 @@ class POSWindow(QMainWindow):
                 if given <= 0:
                     lbl_change.setText("—")
                     lbl_change.setStyleSheet(
-                        "font-size: 24px; font-weight: 700; color: #94A3B8;"
+                        "font-size: 24px; font-weight: 700; color: #606770;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#1E293B; border-radius:10px;"
-                        " border:1px solid #334155; }"
+                        "QFrame { background:#FFFFFF; border-radius:10px;"
+                        " border:1px solid #CCD0D5; }"
                     )
                     btn_confirm.setEnabled(True)
                 elif change < 0:
@@ -2600,7 +2606,7 @@ class POSWindow(QMainWindow):
                         "font-size: 16px; font-weight: 700; color: #F87171;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#2D1515; border-radius:10px;"
+                        "QFrame { background:#F0F2F5; border-radius:10px;"
                         " border:1px solid #7F1D1D; }"
                     )
                     btn_confirm.setEnabled(False)
@@ -2615,7 +2621,7 @@ class POSWindow(QMainWindow):
                         "font-size: 24px; font-weight: 700; color: #34D399;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#0D2B1E; border-radius:10px;"
+                        "QFrame { background:#F0F2F5; border-radius:10px;"
                         " border:1px solid #065F46; }"
                     )
                     btn_confirm.setEnabled(True)
@@ -2635,7 +2641,7 @@ class POSWindow(QMainWindow):
             btn_confirm.setStyleSheet(
                 "QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
                 " stop:0 #059669, stop:1 #0D9488);"
-                " color: white; font-weight: 500; font-size: 14px;"
+                " color: #1C1E21; font-weight: 500; font-size: 14px;"
                 " border-radius: 14px; border: none; letter-spacing: 0.5px; }"
                 "QPushButton:hover { background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
                 " stop:0 #047857, stop:1 #0F766E); }"
@@ -2656,9 +2662,9 @@ class POSWindow(QMainWindow):
         btn_cancel = QPushButton("Hủy")
         btn_cancel.setMinimumHeight(32)
         btn_cancel.setStyleSheet(
-            "QPushButton { background: transparent; color: #475569;"
-            " font-size: 12px; border: 1px solid #1E293B; border-radius: 10px; }"
-            "QPushButton:hover { background: #1E293B; color: #94A3B8; }"
+            "QPushButton { background: transparent; color: #CCD0D5;"
+            " font-size: 12px; border: 1px solid #FFFFFF; border-radius: 10px; }"
+            "QPushButton:hover { background: #FFFFFF; color: #606770; }"
         )
         btn_cancel.clicked.connect(dialog.reject)
         dlg_layout.addWidget(btn_cancel)
@@ -2945,8 +2951,7 @@ class POSWindow(QMainWindow):
         """
         Thoát phiên đăng nhập.
         - Nếu nhân viên có ca đang mở mà chưa check-out thủ công:
-            → Hiện cảnh báo nhắc nhở (3 nút: Check-out rồi xuất / Xuất luôn / Huỷ)
-            → KHÔNG bắt buộc phải check-out mới được đăng xuất.
+            → Chỉ hiện thông báo nhắc nhở rồi cho phép đăng xuất.
         - Admin: bỏ qua kiểm tra ca, cho đăng xuất thẳng.
         """
         from utils.session_manager import clear_session
@@ -2963,32 +2968,11 @@ class POSWindow(QMainWindow):
                 co_ca_dang_mo = getattr(self, '_co_ca', False)
 
         if co_ca_dang_mo:
-            # Nhắc nhở — 3 lựa chọn, KHÔNG bắt buộc
-            msg = QMessageBox(self)
-            msg.setWindowTitle("⚠️ Chưa Check-out Ca")
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText(
-                "Bạn <b>chưa check-out ca làm việc</b>.<br><br>"
-                "Nên check-out trước để ghi nhận giờ ra chính xác.<br>"
-                "Bạn muốn làm gì?"
+            QMessageBox.information(
+                self, "⚠️ Nhắc nhở",
+                "Bạn chưa check-out ca làm việc.\n"
+                "Lưu ý: Bạn cần tự check-out thủ công để ghi nhận giờ ra chính xác."
             )
-            btn_co_checkout = msg.addButton("✅ Check-out rồi Đăng xuất", QMessageBox.AcceptRole)
-            btn_xuat_luon   = msg.addButton("🚪 Đăng xuất luôn",          QMessageBox.DestructiveRole)
-            btn_huy         = msg.addButton("Huỷ",                         QMessageBox.RejectRole)
-            msg.setDefaultButton(btn_co_checkout)
-            msg.exec()
-
-            clicked = msg.clickedButton()
-            if clicked == btn_huy:
-                return  # Huỷ → ở lại
-
-            if clicked == btn_co_checkout:
-                # Thực hiện check-out thủ công, nếu lỗi vẫn tiếp tục đăng xuất
-                try:
-                    self.handle_ca_checkout()
-                except Exception:
-                    pass
-            # btn_xuat_luon hoặc sau check-out → tiếp tục đăng xuất
 
         # ── Xác nhận đăng xuất ───────────────────────────────────
         confirm = QMessageBox.question(

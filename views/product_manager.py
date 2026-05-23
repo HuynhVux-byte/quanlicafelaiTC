@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPixmap
 
 from database.db_config import get_session
-from database.models import SanPham
+from database.models import SanPham, DanhMucSanPham
 
 # Thư mục lưu ảnh sản phẩm (tự tạo nếu chưa có)
 PRODUCT_IMAGE_DIR = "product_images"
@@ -63,14 +63,14 @@ class ProductForm(QDialog):
         self.setWindowTitle("Thêm Món Mới" if not product else f"Sửa: {product.ten_sp}")
         self.resize(460, 400)
         self.setStyleSheet("""
-            QDialog { background-color: #1E1E2E; color: white; }
-            QLabel  { color: #E2E8F0; font-weight: bold; }
+            QDialog { background-color: #FFFFFF; color: #1C1E21; }
+            QLabel  { color: #1C1E21; font-weight: bold; }
             QLineEdit, QComboBox {
-                background-color: #2D2D3F; border: 1px solid #475569;
-                border-radius: 6px; padding: 8px; color: white;
+                background-color: #F0F2F5; border: 1px solid #CCD0D5;
+                border-radius: 6px; padding: 8px; color: #1C1E21;
             }
             QLineEdit:focus, QComboBox:focus {
-                border: 1px solid #3498DB; background-color: #35354A;
+                border: 1px solid #3498DB; background-color: #D8DADF;
             }
         """)
 
@@ -84,8 +84,8 @@ class ProductForm(QDialog):
         self.txt_cost.setPlaceholderText("Giá vốn ước tính (tùy chọn)")
 
         self.cb_danhmuc = QComboBox()
-        self.cb_danhmuc.addItems(["Cà phê", "Trà", "Sinh tố", "Bánh", "Đồ ăn", "Khác"])
-        self.cb_danhmuc.setEditable(True)
+        self.cb_danhmuc.setEditable(False)
+        self._load_categories()
 
         self.cb_trangthai = QComboBox()
         self.cb_trangthai.addItems(["Đang bán", "Ngừng bán", "Hết hàng"])
@@ -104,8 +104,8 @@ class ProductForm(QDialog):
         self.img_preview.setFixedSize(80, 80)
         self.img_preview.setAlignment(Qt.AlignCenter)
         self.img_preview.setStyleSheet(
-            "background-color: #2D2D3F; border: 2px dashed #475569;"
-            " border-radius: 10px; color: #A1A1AA; font-size: 28px;"
+            "background-color: #F0F2F5; border: 2px dashed #CCD0D5;"
+            " border-radius: 10px; color: #606770; font-size: 28px;"
         )
         self.img_preview.setText("🖼️")
         img_row.addWidget(self.img_preview)
@@ -120,7 +120,7 @@ class ProductForm(QDialog):
 
         btn_clear = QPushButton("🗑️ Xóa ảnh")
         btn_clear.setStyleSheet(
-            "background-color: #7F8C8D; color: white; font-weight: bold;"
+            "background-color: #7F8C8D; color: #1C1E21; font-weight: bold;"
             " padding: 8px; border-radius: 6px;"
         )
         btn_clear.clicked.connect(self._clear_image)
@@ -162,6 +162,20 @@ class ProductForm(QDialog):
         btn_save.clicked.connect(self.save)
         layout.addWidget(btn_save)
 
+    def _load_categories(self):
+        s = get_session()
+        try:
+            danh_mucs = s.query(DanhMucSanPham).order_by(DanhMucSanPham.ten_danh_muc).all()
+            if not danh_mucs:
+                # Đề phòng lỗi chưa seed, tự thêm 'Khác'
+                self.cb_danhmuc.addItem("Khác")
+            else:
+                self.cb_danhmuc.addItems([dm.ten_danh_muc for dm in danh_mucs])
+        except Exception:
+            self.cb_danhmuc.addItem("Khác")
+        finally:
+            s.close()
+
     # ── Helpers ảnh ────────────────────────────────────────────────
     def _load_preview(self, path: str):
         px = QPixmap(path).scaled(80, 80, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
@@ -171,7 +185,7 @@ class ProductForm(QDialog):
             px = px.copy(x, y, 80, 80)
         self.img_preview.setPixmap(px)
         self.img_preview.setStyleSheet(
-            "background-color: #2D2D3F; border: 2px solid #27AE60; border-radius: 10px;"
+            "background-color: #F0F2F5; border: 2px solid #27AE60; border-radius: 10px;"
         )
 
     def _pick_image(self):
@@ -189,8 +203,8 @@ class ProductForm(QDialog):
         self.img_preview.setPixmap(QPixmap())
         self.img_preview.setText("🖼️")
         self.img_preview.setStyleSheet(
-            "background-color: #2D2D3F; border: 2px dashed #475569;"
-            " border-radius: 10px; color: #A1A1AA; font-size: 28px;"
+            "background-color: #F0F2F5; border: 2px dashed #CCD0D5;"
+            " border-radius: 10px; color: #606770; font-size: 28px;"
         )
 
     # ── Lưu DB + ảnh ───────────────────────────────────────────────
@@ -257,7 +271,7 @@ class ProductManager(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Quản Lý Danh Mục Món")
         self.resize(750, 520)
-        self.setStyleSheet("background-color: #1E1E2E; color: white;")
+        self.setStyleSheet("background-color: #FFFFFF; color: #1C1E21;")
 
         layout = QVBoxLayout(self)
 
@@ -286,7 +300,7 @@ class ProductManager(QDialog):
 
         btn_xoa = QPushButton("❌ Xóa Món")
         btn_xoa.setStyleSheet(
-            "background-color: #7F0000; color: white; font-weight: bold;"
+            "background-color: #7F0000; color: #1C1E21; font-weight: bold;"
             " padding: 8px 16px; border-radius: 6px;"
         )
         btn_xoa.clicked.connect(self.delete_product)
@@ -310,13 +324,13 @@ class ProductManager(QDialog):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setStyleSheet("""
             QTableWidget {
-                background-color: #2D2D3F; border: none;
-                border-radius: 10px; color: white; font-size: 13px;
+                background-color: #F0F2F5; border: none;
+                border-radius: 10px; color: #1C1E21; font-size: 13px;
             }
-            QTableWidget::item { padding: 6px; border-bottom: 1px solid #3E3E55; }
+            QTableWidget::item { padding: 6px; border-bottom: 1px solid #CCD0D5; }
             QTableWidget::item:selected { background-color: #2980B9; }
             QHeaderView::section {
-                background-color: #1A1A24; color: #A1A1AA;
+                background-color: #E4E6EB; color: #606770;
                 padding: 8px; border: none; font-weight: bold;
             }
         """)
@@ -464,11 +478,11 @@ class ProductManager(QDialog):
         confirm.button(QMessageBox.Yes).setText("Xóa vĩnh viễn")
         confirm.button(QMessageBox.No).setText("Hủy")
         confirm.setStyleSheet(
-            "QMessageBox { background-color: #1E1E2E; color: white; }"
-            "QLabel { color: white; }"
-            "QPushButton { background-color: #2D2D3F; color: white;"
+            "QMessageBox { background-color: #FFFFFF; color: #1C1E21; }"
+            "QLabel { color: #1C1E21; }"
+            "QPushButton { background-color: #F0F2F5; color: #1C1E21;"
             " border-radius: 6px; padding: 6px 16px; font-weight: bold; }"
-            "QPushButton:hover { background-color: #3E3E55; }"
+            "QPushButton:hover { background-color: #CCD0D5; }"
         )
 
         if confirm.exec() != QMessageBox.Yes:

@@ -108,28 +108,28 @@ def _ensure_cham_cong(session, ma_nv: int, ca: CaLamViec, ngay: date) -> ChamCon
 
 
 # ── ĐĂNG NHẬP ────────────────────────────────────────────────────────────────
-def authenticate_user(username: str, password: str):
-    if not username or not password:
-        ghi_nhat_ky_dang_nhap(ten_dang_nhap=username or "(trống)",
+def authenticate_user(email: str, password: str):
+    if not email or not password:
+        ghi_nhat_ky_dang_nhap(ten_dang_nhap=email or "(trống)",
             hanh_dong="Đăng nhập", ket_qua="Thất bại",
-            ghi_chu="Tên đăng nhập hoặc mật khẩu để trống")
+            ghi_chu="Email hoặc mật khẩu để trống")
         return None
 
     session = get_session()
     try:
-        user = session.query(NhanVien).filter_by(ten_dang_nhap=username).first()
+        user = session.query(NhanVien).filter_by(email=email).first()
         if user is None:
-            ghi_nhat_ky_dang_nhap(ten_dang_nhap=username,
+            ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
                 hanh_dong="Đăng nhập", ket_qua="Sai mật khẩu",
-                ghi_chu="Tài khoản không tồn tại")
+                ghi_chu="Tài khoản email không tồn tại")
             return None
         if user.trang_thai == "Tạm khóa":
-            ghi_nhat_ky_dang_nhap(ten_dang_nhap=username,
+            ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
                 hanh_dong="Đăng nhập", ket_qua="Tài khoản khóa",
-                ma_nv=user.id, ghi_chu=f"'{username}' bị tạm khóa")
+                ma_nv=user.id, ghi_chu=f"'{email}' bị tạm khóa")
             return None
         if user.mat_khau != password:
-            ghi_nhat_ky_dang_nhap(ten_dang_nhap=username,
+            ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
                 hanh_dong="Đăng nhập", ket_qua="Sai mật khẩu",
                 ma_nv=user.id, ghi_chu="Mật khẩu không đúng")
             return None
@@ -182,7 +182,7 @@ def authenticate_user(username: str, password: str):
                 ))
 
         session.commit()
-        ghi_nhat_ky_dang_nhap(ten_dang_nhap=username,
+        ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
             hanh_dong="Đăng nhập", ket_qua="Thành công", ma_nv=ma_nv,
             ghi_chu=f"Chức vụ: {user.chuc_vu} | Phiên #{ma_phien} | Ca: {ten_ca_log}")
 
@@ -190,7 +190,7 @@ def authenticate_user(username: str, password: str):
         return {"user": user, "ma_phien": ma_phien}
 
     except Exception as e:
-        ghi_nhat_ky_dang_nhap(ten_dang_nhap=username,
+        ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
             hanh_dong="Đăng nhập", ket_qua="Thất bại", ghi_chu=f"Lỗi DB: {e}")
         try: session.rollback()
         except Exception: pass

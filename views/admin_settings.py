@@ -48,30 +48,30 @@ os.makedirs(AVATAR_DIR, exist_ok=True)
 DEFAULT_AVATAR = os.path.join(os.path.dirname(__file__), "..", "assets", "default_avatar.png")
 
 STYLE_BASE = """
-    QDialog  { background-color: #1E1E2E; color: white; }
-    QWidget  { background-color: #1E1E2E; color: white; }
-    QLabel   { color: white; }
+    QDialog  { background-color: #FFFFFF; color: #1C1E21; }
+    QWidget  { background-color: #FFFFFF; color: #1C1E21; }
+    QLabel   { color: #1C1E21; }
     QLineEdit, QComboBox, QDateEdit {
-        background-color: #2D2D3F; border: 1px solid #3E3E55;
-        border-radius: 6px; padding: 6px 10px; color: white; font-size: 13px;
+        background-color: #F0F2F5; border: 1px solid #CCD0D5;
+        border-radius: 6px; padding: 6px 10px; color: #1C1E21; font-size: 13px;
     }
     QLineEdit:focus, QComboBox:focus, QDateEdit:focus {
         border: 1px solid #3498DB;
     }
     QComboBox::drop-down { border: none; }
-    QComboBox QAbstractItemView { background-color: #2D2D3F; color: white; selection-background-color: #3498DB; }
+    QComboBox QAbstractItemView { background-color: #F0F2F5; color: white; selection-background-color: #3498DB; }
     QTableWidget {
-        background-color: #2D2D3F; border: none; border-radius: 10px;
-        gridline-color: #3E3E55; color: white; font-size: 13px;
+        background-color: #F0F2F5; border: none; border-radius: 10px;
+        gridline-color: #CCD0D5; color: #1C1E21; font-size: 13px;
     }
-    QTableWidget::item { padding: 8px; border-bottom: 1px solid #3E3E55; }
+    QTableWidget::item { padding: 8px; border-bottom: 1px solid #CCD0D5; }
     QTableWidget::item:selected { background-color: #3498DB; color: white; }
     QHeaderView::section {
-        background-color: #1A1A24; color: #A1A1AA;
+        background-color: #E4E6EB; color: #606770;
         padding: 10px; border: none; font-weight: bold; font-size: 13px;
     }
-    QScrollBar:vertical { background: #1A1A24; width: 8px; border-radius: 4px; }
-    QScrollBar::handle:vertical { background: #3E3E55; border-radius: 4px; }
+    QScrollBar:vertical { background: #E4E6EB; width: 8px; border-radius: 4px; }
+    QScrollBar::handle:vertical { background: #CCD0D5; border-radius: 4px; }
 """
 
 
@@ -129,7 +129,7 @@ class AvatarLabel(QLabel):
             placeholder.fill(Qt.transparent)
             painter = QPainter(placeholder)
             painter.setRenderHint(QPainter.Antialiasing)
-            painter.setBrush(QColor("#3E3E55"))
+            painter.setBrush(QColor("#CCD0D5"))
             painter.setPen(Qt.NoPen)
             painter.drawEllipse(0, 0, self._size, self._size)
             painter.setPen(QColor("white"))
@@ -171,8 +171,8 @@ class EmployeeForm(QDialog):
         btn_pick_av = QPushButton("🖼 Chọn Ảnh")
         btn_pick_av.setFixedWidth(110)
         btn_pick_av.setStyleSheet(
-            "background-color: #2D2D3F; border: 1px solid #3E3E55;"
-            " border-radius: 6px; padding: 6px; color: #A1A1AA; font-size: 12px;"
+            "background-color: #F0F2F5; border: 1px solid #CCD0D5;"
+            " border-radius: 6px; padding: 6px; color: #606770; font-size: 12px;"
         )
         btn_pick_av.clicked.connect(self._pick_avatar)
         av_col = QVBoxLayout()
@@ -189,7 +189,7 @@ class EmployeeForm(QDialog):
 
         def _lbl(text):
             l = QLabel(text)
-            l.setStyleSheet("color: #A1A1AA; font-size: 13px;")
+            l.setStyleSheet("color: #606770; font-size: 13px;")
             return l
 
         self.txt_name  = QLineEdit();  self.txt_name.setPlaceholderText("Nguyễn Văn A")
@@ -288,7 +288,7 @@ class EmployeeForm(QDialog):
 
         luong = 0.0
         try:
-            luong = float(luong_txt) if luong_txt else 0.0
+            luong = float(luong_txt) if luong_txt else 5000000.0
         except ValueError:
             QMessageBox.warning(self, "Lỗi", "Lương cơ bản phải là số!")
             return
@@ -385,7 +385,7 @@ class ChangePasswordDialog(QDialog):
 
         def _lbl(t):
             l = QLabel(t)
-            l.setStyleSheet("color: #A1A1AA;")
+            l.setStyleSheet("color: #606770;")
             return l
 
         # Ô mật khẩu cũ — chỉ hiện khi tự đổi
@@ -411,7 +411,7 @@ class ChangePasswordDialog(QDialog):
         # Checkbox gửi email xác nhận
         from PySide6.QtWidgets import QCheckBox
         self.chk_email = QCheckBox("📧 Gửi email xác nhận cho nhân viên")
-        self.chk_email.setStyleSheet("color: #A1A1AA; font-size: 12px;")
+        self.chk_email.setStyleSheet("color: #606770; font-size: 12px;")
         self.chk_email.setChecked(True)
         layout.addWidget(self.chk_email)
 
@@ -583,7 +583,7 @@ class EmployeePanel(QWidget):
         def _btn(text, color):
             b = QPushButton(text)
             b.setStyleSheet(
-                f"background-color: {color}; color: white; font-weight: bold;"
+                f"background-color: {color}; color: #1C1E21; font-weight: bold;"
                 f" padding: 7px 14px; border-radius: 6px; font-size: 13px;"
             )
             return b
@@ -609,16 +609,17 @@ class EmployeePanel(QWidget):
             "Lương Cơ Bản", "Ngày Vào Làm", "Trạng Thái"
         ])
         hh = self.table.horizontalHeader()
-        hh.setSectionResizeMode(0, QHeaderView.Fixed);          self.table.setColumnWidth(0, 52)
-        hh.setSectionResizeMode(1, QHeaderView.Fixed);          self.table.setColumnWidth(1, 40)
-        hh.setSectionResizeMode(2, QHeaderView.Stretch)
-        hh.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(5, QHeaderView.Stretch)
-        hh.setSectionResizeMode(6, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(7, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(8, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+        hh.setMinimumSectionSize(60) # Đảm bảo không cột nào bị ép quá nhỏ
+        hh.setSectionResizeMode(0, QHeaderView.Fixed); self.table.setColumnWidth(0, 52)
+        hh.setSectionResizeMode(1, QHeaderView.Fixed); self.table.setColumnWidth(1, 30) # Thu nhỏ cột ID
+        hh.setSectionResizeMode(2, QHeaderView.Stretch) # Họ Tên sẽ tự chiếm toàn bộ không gian trống
+        hh.setSectionResizeMode(3, QHeaderView.Interactive); self.table.setColumnWidth(3, 90) # Đăng nhập
+        hh.setSectionResizeMode(4, QHeaderView.Interactive); self.table.setColumnWidth(4, 95) # SĐT
+        hh.setSectionResizeMode(5, QHeaderView.Interactive); self.table.setColumnWidth(5, 140) # Email (chuyển sang Interactive để Họ Tên rộng hơn)
+        hh.setSectionResizeMode(6, QHeaderView.Interactive); self.table.setColumnWidth(6, 90) # Chức vụ
+        hh.setSectionResizeMode(7, QHeaderView.Interactive); self.table.setColumnWidth(7, 95) # Lương
+        hh.setSectionResizeMode(8, QHeaderView.Interactive); self.table.setColumnWidth(8, 90) # Vào làm
+        hh.setSectionResizeMode(9, QHeaderView.Interactive); self.table.setColumnWidth(9, 100) # Trạng thái
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setRowHeight(0, 56)
@@ -660,7 +661,7 @@ class EmployeePanel(QWidget):
                 # Cột 1: ID (ẩn, dùng UserRole)
                 id_item = QTableWidgetItem(str(emp.id))
                 id_item.setData(Qt.UserRole, emp.id)
-                id_item.setForeground(QColor("#A1A1AA"))
+                id_item.setForeground(QColor("#606770"))
                 self.table.setItem(i, 1, id_item)
 
                 # Cột 2: Họ tên
@@ -680,7 +681,7 @@ class EmployeePanel(QWidget):
                 # Cột 6: Chức vụ (màu theo role)
                 role_item = QTableWidgetItem(emp.chuc_vu or "")
                 role_item.setForeground(
-                    QColor(ROLE_COLOR.get(emp.chuc_vu, "#A1A1AA"))
+                    QColor(ROLE_COLOR.get(emp.chuc_vu, "#606770"))
                 )
                 f2 = role_item.font(); f2.setBold(True); role_item.setFont(f2)
                 self.table.setItem(i, 6, role_item)
@@ -698,7 +699,7 @@ class EmployeePanel(QWidget):
                 # Cột 9: Trạng thái
                 tt = emp.trang_thai or "Đang làm việc"
                 tt_item = QTableWidgetItem(tt)
-                tt_item.setForeground(QColor(STATUS_COLOR.get(tt, "#A1A1AA")))
+                tt_item.setForeground(QColor(STATUS_COLOR.get(tt, "#606770")))
                 self.table.setItem(i, 9, tt_item)
 
         finally:
@@ -809,10 +810,10 @@ class AdminSettingsDialog(QDialog):
         self.resize(1100, 640)
         self.setStyleSheet(STYLE_BASE + """
             QListWidget {
-                background-color: #2D2D3F; border: none; border-radius: 10px;
-                color: #A1A1AA; font-size: 14px; font-weight: bold;
+                background-color: #F0F2F5; border: none; border-radius: 10px;
+                color: #606770; font-size: 14px; font-weight: bold;
             }
-            QListWidget::item { padding: 16px 12px; border-bottom: 1px solid #1E1E2E; }
+            QListWidget::item { padding: 16px 12px; border-bottom: 1px solid #FFFFFF; }
             QListWidget::item:selected { background-color: #3498DB; color: white; border-radius: 8px; }
         """)
 
@@ -823,14 +824,14 @@ class AdminSettingsDialog(QDialog):
         # ── Menu trái ───────────────────────────────────────────
         left = QWidget()
         left.setFixedWidth(220)
-        left.setStyleSheet("background-color: #2D2D3F; border-right: 1px solid #3E3E55;")
+        left.setStyleSheet("background-color: #F0F2F5; border-right: 1px solid #CCD0D5;")
         lv = QVBoxLayout(left)
         lv.setContentsMargins(10, 16, 10, 16)
         lv.setSpacing(0)
 
         menu_title = QLabel("⚙️ CÀI ĐẶT")
         menu_title.setStyleSheet(
-            "font-size: 13px; font-weight: bold; color: #A1A1AA;"
+            "font-size: 13px; font-weight: bold; color: #606770;"
             " padding: 0 8px 12px 8px; letter-spacing: 1px;"
         )
         lv.addWidget(menu_title)
@@ -840,7 +841,7 @@ class AdminSettingsDialog(QDialog):
             QListWidget { background: transparent; border: none; }
             QListWidget::item { padding: 14px 10px; border-radius: 8px; margin-bottom: 2px; }
             QListWidget::item:selected { background-color: #3498DB; color: white; }
-            QListWidget::item:hover { background-color: #3E3E55; }
+            QListWidget::item:hover { background-color: #CCD0D5; }
         """)
         self.menu_list.addItems([
             "👥  Quản lý Nhân Sự",
@@ -866,11 +867,8 @@ class AdminSettingsDialog(QDialog):
         # Tab 2: Lương (demo)
         self.stack.addWidget(self._make_payroll_tab())
 
-        # Tab 3: Cấu hình (placeholder)
-        ph = QLabel("🔧 Tính năng Cấu hình Quán đang được phát triển...")
-        ph.setAlignment(Qt.AlignCenter)
-        ph.setStyleSheet("font-size: 15px; color: #A1A1AA;")
-        self.stack.addWidget(ph)
+        # Tab 3: Cấu hình Quán
+        self.stack.addWidget(self._make_config_tab())
 
         self.menu_list.currentRowChanged.connect(self.stack.setCurrentIndex)
         self.menu_list.setCurrentRow(0)
@@ -932,7 +930,7 @@ class AdminSettingsDialog(QDialog):
                 table.insertRow(i)
                 table.setItem(i, 0, QTableWidgetItem(emp.ten_nv))
                 role_item = QTableWidgetItem(emp.chuc_vu or "")
-                role_item.setForeground(QColor(ROLE_COLOR.get(emp.chuc_vu, "#A1A1AA")))
+                role_item.setForeground(QColor(ROLE_COLOR.get(emp.chuc_vu, "#606770")))
                 table.setItem(i, 1, role_item)
                 table.setItem(i, 2, QTableWidgetItem("— ca"))
                 luong = int(emp.luong_co_ban or 0)
@@ -943,6 +941,92 @@ class AdminSettingsDialog(QDialog):
 
         lay.addWidget(table)
         lay.addWidget(QLabel(
-            "<i style='color:#A1A1AA;'>* Module chấm công & tính lương đang hoàn thiện liên kết Database.</i>"
+            "<i style='color:#606770;'>* Module chấm công & tính lương đang hoàn thiện liên kết Database.</i>"
         ))
         return w
+
+    # ── Tab Cấu hình Quán ───────────────────────────────────────
+    def _make_config_tab(self):
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setContentsMargins(20, 20, 20, 20)
+        lay.setSpacing(15)
+        
+        lbl_title = QLabel("⚙️ Cấu hình Ngân Hàng Thanh Toán")
+        lbl_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #1C1E21;")
+        lay.addWidget(lbl_title)
+        
+        # Check Admin permission
+        is_admin = False
+        s = get_session()
+        nv = s.query(NhanVien).get(self.actor_id) if self.actor_id else None
+        if nv and nv.chuc_vu == "Quản lý":
+            is_admin = True
+        s.close()
+
+        form = QFormLayout()
+        form.setSpacing(10)
+        
+        self.txt_bank_name = QLineEdit()
+        self.txt_bank_name.setPlaceholderText("VD: Vietcombank, MBBank...")
+        self.txt_bank_name.setStyleSheet("background-color: #F0F2F5; border: 1px solid #CCD0D5; border-radius: 6px; padding: 6px; color: #1C1E21; font-size: 13px;")
+        
+        self.txt_bank_account = QLineEdit()
+        self.txt_bank_account.setPlaceholderText("VD: 1012345678")
+        self.txt_bank_account.setStyleSheet("background-color: #F0F2F5; border: 1px solid #CCD0D5; border-radius: 6px; padding: 6px; color: #1C1E21; font-size: 13px;")
+        
+        if not is_admin:
+            self.txt_bank_name.setEnabled(False)
+            self.txt_bank_account.setEnabled(False)
+            warn = QLabel("⚠ Chỉ có Quản lý (Admin) mới có quyền thay đổi cấu hình này.")
+            warn.setStyleSheet("color: #E74C3C; font-size: 13px; font-style: italic;")
+            lay.addWidget(warn)
+            
+        # Load config
+        import json, os
+        config_path = "config.json"
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.txt_bank_name.setText(cfg.get("bank_name", ""))
+                    self.txt_bank_account.setText(cfg.get("bank_account", ""))
+            except Exception:
+                pass
+
+        form.addRow(QLabel("Tên ngân hàng:"), self.txt_bank_name)
+        form.addRow(QLabel("Số tài khoản:"), self.txt_bank_account)
+        lay.addLayout(form)
+        
+        if is_admin:
+            btn_save = QPushButton("💾 Lưu Cấu Hình")
+            btn_save.setMinimumHeight(44)
+            btn_save.setStyleSheet(
+                "background-color: #27AE60; color: white; font-weight: bold;"
+                " font-size: 14px; border-radius: 8px;"
+            )
+            btn_save.clicked.connect(self._save_config)
+            lay.addWidget(btn_save)
+            
+        lay.addStretch()
+        return w
+
+    def _save_config(self):
+        import json
+        config_path = "config.json"
+        cfg = {}
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+            
+        cfg["bank_name"] = self.txt_bank_name.text().strip()
+        cfg["bank_account"] = self.txt_bank_account.text().strip()
+        
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, ensure_ascii=False, indent=4)
+            QMessageBox.information(self, "Thành công", "Đã lưu thông tin tài khoản ngân hàng!")
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể lưu cấu hình: {e}")

@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from database.models import (
     Base,
-    SanPham, KhuyenMai,
+    SanPham, KhuyenMai, DanhMucSanPham,
     NhanVien, NhatKyHoatDong, NhatKyDangNhap,
     CaLamViec, PhanCongCaLam, PhienLamViec,
     KhachHang, HoaDon, ChiTietHoaDon,
@@ -122,10 +122,19 @@ def init_db_and_seed():
                 mat_khau      = "123",
                 chuc_vu       = "Admin",
                 luong_co_ban  = 0,
+                email         = "admin@cafe.com",
             )
             session.add(admin)
             session.commit()
-            print("✅ Tạo tài khoản admin / mật khẩu: 123")
+            print("✅ Tạo tài khoản admin / mật khẩu: 123 (email: admin@cafe.com)")
+            
+        if session.query(DanhMucSanPham).count() == 0:
+            print("Đang tạo danh mục mặc định...")
+            default_categories = ["Cà Phê", "Trà", "Sinh Tố", "Nước Ép", "Bánh & Snack", "Đồ Ăn", "Nước Ngọt", "Khác"]
+            for cat in default_categories:
+                session.add(DanhMucSanPham(ten_danh_muc=cat))
+            session.commit()
+            print("✅ Tạo danh mục mặc định thành công.")
     finally:
         session.close()
 

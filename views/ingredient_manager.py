@@ -12,7 +12,7 @@ class InventoryDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Quản Lý Kho")
         self.resize(450, 200)
-        self.setStyleSheet("background-color: #1E1E2E; color: white;")
+        self.setStyleSheet("background-color: #FFFFFF; color: #1C1E21;")
 
         layout = QVBoxLayout(self)
 
@@ -20,7 +20,7 @@ class InventoryDialog(QDialog):
             "📦 <b>Tính năng Quản lý Nguyên liệu đã được tích hợp vào từng Sản phẩm.</b><br><br>"
             "Giá vốn của mỗi món được quản lý trực tiếp trong<br>"
             "<b>⚙️ MENU → Sửa Món → Giá vốn (đ)</b>.<br><br>"
-            "<span style='color:#A1A1AA; font-size:12px;'>"
+            "<span style='color:#606770; font-size:12px;'>"
             "Nếu cần module kho nguyên liệu riêng, vui lòng liên hệ kỹ thuật viên.</span>"
         )
         lbl.setAlignment(Qt.AlignCenter)

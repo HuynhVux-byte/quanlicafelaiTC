@@ -25,7 +25,7 @@ class NhanVien(Base):
     chuc_vu       = Column(String(50),  default='Thu ngân')
     luong_co_ban  = Column(Float,  default=0.0)
     sdt           = Column(String(15),  nullable=True)
-    email         = Column(String(100), nullable=True)
+    email         = Column(String(100), unique=True, nullable=True)
     ngay_vao_lam  = Column(Date, default=date.today)
     trang_thai    = Column(String(50),  default='Đang làm việc')
     avatar_path   = Column(String(300), nullable=True)   # đường dẫn ảnh
@@ -135,6 +135,14 @@ class PhienLamViec(Base):
 #   (Đã bỏ NguyenLieu + CongThuc, thay bằng gia_nhap trực tiếp
 #    trên SanPham — đơn giản hóa cho mô hình quán café nhỏ)
 # =================================================================
+
+class DanhMucSanPham(Base):
+    """Bảng quản lý danh mục sản phẩm chủ động thay vì nhập text tự do"""
+    __tablename__ = 'danh_muc_san_pham'
+
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    ten_danh_muc = Column(String(100), unique=True, nullable=False)
+
 
 class SanPham(Base):
     """

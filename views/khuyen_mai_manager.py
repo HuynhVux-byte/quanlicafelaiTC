@@ -33,45 +33,45 @@ from database.models import KhuyenMai, SanPham, NhatKyKhuyenMai
 
 
 STYLE = """
-QDialog, QWidget  { background-color: #1A1A2E; color: #E8E8F0; }
-QTabWidget::pane  { border: none; background: #1A1A2E; }
-QTabBar::tab      { background:#252540; color:#8888AA; padding:10px 22px;
+QDialog, QWidget  { background-color: #FFFFFF; color: #1C1E21; }
+QTabWidget::pane  { border: none; background: #FFFFFF; }
+QTabBar::tab      { background:#F0F2F5; color:#606770; padding:10px 22px;
     border-radius:6px 6px 0 0; font-weight:bold; font-size:13px; }
 QTabBar::tab:selected { background:#E67E22; color:white; }
-QTabBar::tab:hover    { background:#333355; color:white; }
+QTabBar::tab:hover    { background:#CCD0D5; color: #1C1E21; }
 QTableWidget {
-    background:#1E1E30; border:none; border-radius:8px;
-    gridline-color:transparent; color:#E8E8F0; font-size:13px;
-    alternate-background-color:#252540; }
+    background:#FFFFFF; border:none; border-radius:8px;
+    gridline-color:transparent; color:#1C1E21; font-size:13px;
+    alternate-background-color:#F0F2F5; }
 QTableWidget::item {
-    background:#1E1E30; color:#E8E8F0;
-    padding:8px 10px; border-bottom:1px solid #2A2A45; }
+    background:#FFFFFF; color:#1C1E21;
+    padding:8px 10px; border-bottom:1px solid #F0F2F5; }
 QTableWidget::item:alternate {
-    background:#252540; color:#E8E8F0; }
+    background:#F0F2F5; color:#1C1E21; }
 QTableWidget::item:selected {
     background:#8E44AD; color:white; }
 QTableWidget::item:selected:alternate {
     background:#8E44AD; color:white; }
-QHeaderView::section { background:#13132A; color:#9898B8;
-    padding:9px 10px; border:none; border-bottom:2px solid #2A2A45;
+QHeaderView::section { background:#13132A; color:#606770;
+    padding:9px 10px; border:none; border-bottom:2px solid #F0F2F5;
     font-weight:bold; font-size:12px; }
 QLineEdit, QDateEdit, QComboBox, QSpinBox, QDoubleSpinBox, QTimeEdit {
-    background:#252540; border:1px solid #333355; border-radius:6px;
-    padding:6px 10px; color:#E8E8F0; font-size:13px; }
+    background:#F0F2F5; border:1px solid #CCD0D5; border-radius:6px;
+    padding:6px 10px; color:#1C1E21; font-size:13px; }
 QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus { border-color:#E67E22; }
-QTextEdit { background:#252540; border:1px solid #333355; border-radius:6px;
-    padding:6px 10px; color:#E8E8F0; font-size:13px; }
+QTextEdit { background:#F0F2F5; border:1px solid #CCD0D5; border-radius:6px;
+    padding:6px 10px; color:#1C1E21; font-size:13px; }
 QComboBox::drop-down { border:none; }
-QComboBox QAbstractItemView { background:#252540; color:#E8E8F0;
+QComboBox QAbstractItemView { background:#F0F2F5; color:#1C1E21;
     selection-background-color:#E67E22; }
-QScrollBar:vertical { background:#1A1A2E; width:7px; border-radius:4px; }
-QScrollBar::handle:vertical { background:#333355; border-radius:4px; }
-QCheckBox { color:#E8E8F0; font-size:13px; }
+QScrollBar:vertical { background:#FFFFFF; width:7px; border-radius:4px; }
+QScrollBar::handle:vertical { background:#CCD0D5; border-radius:4px; }
+QCheckBox { color:#1C1E21; font-size:13px; }
 QCheckBox::indicator { width:16px; height:16px; border-radius:4px;
-    border:2px solid #444466; background:#252540; }
+    border:2px solid #CCD0D5; background:#F0F2F5; }
 QCheckBox::indicator:checked { background:#8E44AD; border-color:#8E44AD; }
 QCheckBox::indicator:hover   { border-color:#8E44AD; }
-QSplitter::handle { background:#333355; width:2px; }
+QSplitter::handle { background:#CCD0D5; width:2px; }
 """
 
 
@@ -79,14 +79,14 @@ def _btn(text, color, h=36):
     b = QPushButton(text)
     b.setMinimumHeight(h)
     b.setStyleSheet(
-        f"background:{color};color:white;font-weight:bold;"
+        f"background:{color};color: #1C1E21;font-weight:bold;"
         f"border-radius:6px;font-size:13px;padding:0 14px;"
         f"border:none;"
     )
     return b
 
 
-def _lbl(text, color="#E8E8F0", size=13, bold=False):
+def _lbl(text, color="#1C1E21", size=13, bold=False):
     l = QLabel(text)
     l.setStyleSheet(
         f"color:{color};font-size:{size}px;background:transparent;border:none;"
@@ -98,7 +98,7 @@ def _lbl(text, color="#E8E8F0", size=13, bold=False):
 def _section_frame(title: str, color: str = "#E67E22") -> tuple[QFrame, QVBoxLayout]:
     f = QFrame()
     f.setStyleSheet(
-        f"QFrame {{ background:#252540; border-radius:8px; border:1px solid {color}; }}"
+        f"QFrame {{ background:#F0F2F5; border-radius:8px; border:1px solid {color}; }}"
     )
     v = QVBoxLayout(f)
     v.setContentsMargins(14, 10, 14, 12)
@@ -163,7 +163,7 @@ class KhuyenMaiForm(QDialog):
         # ── PHẢI: preview ───────────────────────────────────────
         preview_wrap = QFrame()
         preview_wrap.setStyleSheet(
-            "QFrame { background:#252540; border-radius:10px; border:1px solid #E67E22; }"
+            "QFrame { background:#F0F2F5; border-radius:10px; border:1px solid #E67E22; }"
         )
         pv = QVBoxLayout(preview_wrap)
         pv.setContentsMargins(16, 14, 16, 14)
@@ -175,8 +175,8 @@ class KhuyenMaiForm(QDialog):
         self.preview_card.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.preview_card.setTextFormat(Qt.RichText)
         self.preview_card.setStyleSheet(
-            "background:#1A1A2E; border-radius:8px; padding:14px;"
-            " color:#E8E8F0; font-size:13px; border:none;"
+            "background:#FFFFFF; border-radius:8px; padding:14px;"
+            " color:#1C1E21; font-size:13px; border:none;"
         )
         self.preview_card.setMinimumHeight(180)
         pv.addWidget(self.preview_card)
@@ -187,7 +187,7 @@ class KhuyenMaiForm(QDialog):
         self.preview_hint.setAlignment(Qt.AlignTop)
         self.preview_hint.setTextFormat(Qt.RichText)
         self.preview_hint.setStyleSheet(
-            "background:transparent; color:#8888AA; font-size:12px; border:none;"
+            "background:transparent; color:#606770; font-size:12px; border:none;"
         )
         pv.addWidget(self.preview_hint)
         pv.addStretch()
@@ -198,7 +198,7 @@ class KhuyenMaiForm(QDialog):
 
         # ── Nút lưu ─────────────────────────────────────────────
         btn_row = QHBoxLayout()
-        btn_cancel = _btn("✖ Hủy", "#555577", 44)
+        btn_cancel = _btn("✖ Hủy", "#CCD0D5", 44)
         btn_cancel.clicked.connect(self.reject)
         btn_save = _btn("💾  Lưu Khuyến Mãi", "#27AE60", 44)
         btn_save.clicked.connect(self._save)
@@ -239,7 +239,7 @@ class KhuyenMaiForm(QDialog):
         fl = self._form_layout
 
         def _fl(t):
-            l = QLabel(t); l.setStyleSheet("color:#8888AA; border:none;"); return l
+            l = QLabel(t); l.setStyleSheet("color:#606770; border:none;"); return l
 
         # ── 1. Thông tin chung ───────────────────────────────────
         sec1, v1 = _section_frame("📋 Thông tin chung")
@@ -274,14 +274,15 @@ class KhuyenMaiForm(QDialog):
         self._load_categories()
 
         self.cb_kieu = QComboBox()
-        self.cb_kieu.addItems(["PhanTram", "TienMat"])
+        self.cb_kieu.addItems(["PhanTram"]) # Chỉ cho phép giảm phần trăm
+        self.cb_kieu.setEnabled(False)      # Khóa cứng không cho sửa
 
         from PySide6.QtGui import QIntValidator
         _int_val = QIntValidator(0, 100_000_000)
 
-        self.sp_gt = QLineEdit("0")
-        self.sp_gt.setValidator(QIntValidator(0, 10_000_000))
-        self.sp_gt.setPlaceholderText("Nhập giá trị...")
+        self.sp_gt = QLineEdit("100")       # Mặc định 100%
+        self.sp_gt.setEnabled(False)        # Khóa cứng không cho sửa
+        self.sp_gt.setPlaceholderText("100")
 
         self.sp_tran = QLineEdit()
         self.sp_tran.setValidator(_int_val)
@@ -308,7 +309,7 @@ class KhuyenMaiForm(QDialog):
         # ── 3. Mua X Tặng Y ─────────────────────────────────────
         self.sec_mua = QFrame()
         self.sec_mua.setStyleSheet(
-            "QFrame { background:#252540; border-radius:8px; border:1px solid #27AE60; }"
+            "QFrame { background:#F0F2F5; border-radius:8px; border:1px solid #27AE60; }"
         )
         sm = QVBoxLayout(self.sec_mua)
         sm.setContentsMargins(14, 10, 14, 12); sm.setSpacing(8)
@@ -369,7 +370,7 @@ class KhuyenMaiForm(QDialog):
         self.te_tu  = QTimeEdit(QTime(8, 0))
         self.te_tu.setDisplayFormat("HH:mm"); self.te_tu.setEnabled(False)
         self.te_tu.setFixedWidth(90)
-        self.lbl_den = _lbl("đến", "#8888AA")
+        self.lbl_den = _lbl("đến", "#606770")
         self.te_den = QTimeEdit(QTime(12, 0))
         self.te_den.setDisplayFormat("HH:mm"); self.te_den.setEnabled(False)
         self.te_den.setFixedWidth(90)
@@ -604,7 +605,7 @@ class KhuyenMaiForm(QDialog):
 
     def _style_nhom_btn(self, btn: QPushButton, active: bool):
         bg     = btn.property("bg_on")  if active else btn.property("bg_off")
-        border = btn.property("bg_on")  if active else "#333355"
+        border = btn.property("bg_on")  if active else "#CCD0D5"
         color  = "white"
         radius = btn.property("radius") or "border-radius:8px;"
         btn.setStyleSheet(
@@ -664,7 +665,7 @@ class KhuyenMaiForm(QDialog):
             sp_tang = self.cb_sp_tang.currentText()
             so_tang = self.sp_so_tang.value()
             giam_html = (
-                f"<div style='background:#1A3A2A;border-radius:6px;padding:8px 12px;"
+                f"<div style='background:#F0F2F5;border-radius:6px;padding:8px 12px;"
                 f"margin:6px 0;border-left:3px solid #27AE60;'>"
                 f"🎁 Mua <b style='color:#2ECC71'>{so_mua}</b> {sp_mua}"
                 f" → Tặng <b style='color:#F1C40F'>{so_tang}</b> {sp_tang}"
@@ -717,8 +718,8 @@ class KhuyenMaiForm(QDialog):
         if dk_parts:
             items = " &nbsp;·&nbsp; ".join(dk_parts)
             dk_html = (
-                f"<div style='background:#1A1A2E;border-radius:6px;padding:6px 10px;"
-                f"margin-top:6px;font-size:12px;color:#A1A1AA;'>{items}</div>"
+                f"<div style='background:#FFFFFF;border-radius:6px;padding:6px 10px;"
+                f"margin-top:6px;font-size:12px;color:#606770;'>{items}</div>"
             )
 
         code_html = ""
@@ -732,7 +733,7 @@ class KhuyenMaiForm(QDialog):
 
         mo_ta_html = ""
         if mo_ta:
-            mo_ta_html = f"<p style='color:#A1A1AA;font-size:12px;margin:4px 0;'>{mo_ta}</p>"
+            mo_ta_html = f"<p style='color:#606770;font-size:12px;margin:4px 0;'>{mo_ta}</p>"
 
         # Badge nhóm trong preview
         nhom = getattr(self, '_nhom_hien_tai',
@@ -741,13 +742,13 @@ class KhuyenMaiForm(QDialog):
         if nhom == 'DoiDiem' and self.chk_doi_diem.isChecked():
             diem = self.sp_diem_can.value()
             diem_html = (
-                f"<div style='background:#2A1A3A;border-radius:6px;padding:6px 12px;"
+                f"<div style='background:#F0F2F5;border-radius:6px;padding:6px 12px;"
                 f"margin:4px 0;border-left:3px solid #A569BD;font-size:12px;'>"
                 f"🌟 Đổi <b style='color:#A569BD'>{diem:,} điểm</b> → nhận ưu đãi này</div>"
             )
         elif nhom == 'CaNhan':
             diem_html = (
-                f"<div style='background:#1A3A2A;border-radius:6px;padding:6px 12px;"
+                f"<div style='background:#F0F2F5;border-radius:6px;padding:6px 12px;"
                 f"margin:4px 0;border-left:3px solid #27AE60;font-size:12px;'>"
                 f"👤 <b style='color:#27AE60'>Voucher Riêng</b> — phát riêng từng khách</div>"
             )
@@ -755,7 +756,7 @@ class KhuyenMaiForm(QDialog):
         card = f"""
         <div style='font-family:sans-serif;'>
             <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;'>
-                <b style='font-size:15px;color:#E8E8F0;'>{ten}</b>
+                <b style='font-size:15px;color:#1C1E21;'>{ten}</b>
                 {tt_badge}
             </div>
             {mo_ta_html}
@@ -995,10 +996,10 @@ class KhuyenMaiManagerDialog(QDialog):
 
         # ── Hàng 2: Filter chip loại KM ──────────────────────────
         filter_row = QHBoxLayout(); filter_row.setSpacing(6)
-        filter_row.addWidget(_lbl("Lọc loại:", "#8888AA", 12))
+        filter_row.addWidget(_lbl("Lọc loại:", "#606770", 12))
 
         _CHIPS = [
-            (None,       "Tất cả",          "#2D2D50", "#A0A0C0"),
+            (None,       "Tất cả",          "#F0F2F5", "#606770"),
             ('Chung',    "🌍 KM Chung",      "#1D4E89", "#5DADE2"),
             ('DoiDiem',  "🎁 Đổi điểm",     "#6E3B12", "#E67E22"),
             ('CaNhan',   "👤 Voucher Riêng", "#1D6A39", "#27AE60"),
@@ -1012,10 +1013,10 @@ class KhuyenMaiManagerDialog(QDialog):
             b.setStyleSheet(
                 f"QPushButton {{ background:{bg}; color:{fg}; font-weight:bold;"
                 f" font-size:12px; border-radius:14px; padding:0 14px; border:none; }}"
-                f"QPushButton:checked {{ background:{fg}; color:#1A1A2E; }}"
+                f"QPushButton:checked {{ background:{fg}; color:#FFFFFF; }}"
                 f"QPushButton:hover   {{ opacity:0.85; }}"
             )
-            b.clicked.connect(lambda _, n=nhom: self._set_filter(n))
+            b.clicked.connect(lambda checked=False, n=nhom: self._set_filter(n))
             self._chip_btns[nhom] = b
             filter_row.addWidget(b)
 
@@ -1052,7 +1053,7 @@ class KhuyenMaiManagerDialog(QDialog):
         root.addWidget(self.table, stretch=1)
 
         # Label thống kê dưới bảng
-        self.lbl_history = _lbl("", "#8888AA", 12)
+        self.lbl_history = _lbl("", "#606770", 12)
         root.addWidget(self.lbl_history)
 
         # ── Nút đóng ─────────────────────────────────────────────
@@ -1143,9 +1144,9 @@ class KhuyenMaiManagerDialog(QDialog):
                 self.table.setCellWidget(i, 1, badge_w)
 
                 # Col 2: Tên
-                self.table.setItem(i, 2, _it(km.ten_km or "", "#E8E8F0"))
+                self.table.setItem(i, 2, _it(km.ten_km or "", "#1C1E21"))
                 # Col 3: Mô tả
-                self.table.setItem(i, 3, _it(getattr(km, 'mo_ta', '') or "—", "#8888AA"))
+                self.table.setItem(i, 3, _it(getattr(km, 'mo_ta', '') or "—", "#606770"))
                 # Col 4: Mã code
                 self.table.setItem(i, 4, _it(km.ma_code or "—", "#F1C40F"))
 
@@ -1195,7 +1196,7 @@ class KhuyenMaiManagerDialog(QDialog):
 
                 else:
                     gt_str   = loai_map.get(km.loai_km, km.loai_km or "—")
-                    gt_color = "#8888AA"
+                    gt_color = "#606770"
 
                 # Đổi điểm: thêm số điểm cần ở đầu
                 if km_nhom == 'DoiDiem':
@@ -1241,7 +1242,7 @@ class KhuyenMaiManagerDialog(QDialog):
                 btn_dk.setToolTip(_dk_text)
                 btn_dk.setStyleSheet(
                     f"background:{'#1D4E89' if has_dk else 'transparent'}; "
-                    f"color:{'#5DADE2' if has_dk else '#555566'}; "
+                    f"color:{'#5DADE2' if has_dk else '#CCD0D5'}; "
                     "border:none; border-radius:5px; font-size:14px; padding:0;"
                 )
                 # Đóng gói _dk_text vào closure
@@ -1251,8 +1252,8 @@ class KhuyenMaiManagerDialog(QDialog):
                         dlg_dk.setWindowTitle(f"📋 Điều kiện — {km_ten}")
                         dlg_dk.resize(380, 220)
                         dlg_dk.setStyleSheet(
-                            "QDialog{background:#1E1E2E;color:white;}"
-                            "QLabel{background:transparent;font-size:13px;color:#E8E8F0;}"
+                            "QDialog{background:#FFFFFF;color: #1C1E21;}"
+                            "QLabel{background:transparent;font-size:13px;color:#1C1E21;}"
                             "QPushButton{background:#34495E;color:white;border-radius:6px;"
                             " padding:6px 18px;font-weight:bold;}"
                         )
@@ -1264,7 +1265,7 @@ class KhuyenMaiManagerDialog(QDialog):
                         lbl_body = QLabel(dk_txt)
                         lbl_body.setWordWrap(True)
                         lbl_body.setStyleSheet(
-                            "background:#252540;border-radius:8px;padding:12px;"
+                            "background:#F0F2F5;border-radius:8px;padding:12px;"
                             "font-size:13px;color:#A0C4FF;line-height:1.6;"
                         )
                         vl.addWidget(lbl_body)

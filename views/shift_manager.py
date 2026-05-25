@@ -48,48 +48,53 @@ CA_COLOR = {
 }
 
 STYLE = """
-QDialog, QWidget { background-color: #FFFFFF; color: #1C1E21; }
-QTabWidget::pane { border: none; background: #FFFFFF; }
+QDialog { background-color: #F3F4F6; color: #1F2937; } QLabel { color: #1F2937; background: transparent; }
+QTabWidget::pane { border: none; background: #F3F4F6; }
 QTabBar::tab {
-    background: #F0F2F5; color: #606770;
+    background: #FFFFFF; color: #4B5563;
     padding: 10px 22px; border-radius: 6px 6px 0 0;
-    font-weight: bold; font-size: 13px;
+    font-weight: bold; font-size: 13px; border: 1px solid #CBD5E1; border-bottom: none;
 }
-QTabBar::tab:selected { background: #3498DB; color: white; }
-QTabBar::tab:hover    { background: #CCD0D5; color: #1C1E21; }
+QTabBar::tab:selected { background: #3B82F6; color: white; border-color: #3B82F6; }
+QTabBar::tab:hover    { background: #F1F5F9; color: #1F2937; }
 QTableWidget {
-    background: #F0F2F5; border: none; border-radius: 8px;
-    gridline-color: #CCD0D5; color: #1C1E21; font-size: 13px;
+    background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px;
+    gridline-color: #F1F5F9; color: #1F2937; font-size: 13px;
 }
-QTableWidget::item         { padding: 6px; border-bottom: 1px solid #CCD0D5; }
-QTableWidget::item:selected{ background: #3498DB; }
+QTableWidget::item         { padding: 8px 6px; border-bottom: 1px solid #F1F5F9; }
+QTableWidget::item:selected{ background: #3B82F6; color: white; }
 QHeaderView::section {
-    background: #E4E6EB; color: #606770;
-    padding: 8px; border: none; font-weight: bold;
+    background: #F1F5F9; color: #475569;
+    padding: 8px 6px; border: none; border-bottom: 2px solid #CBD5E1; border-right: 1px solid #E2E8F0; font-weight: bold; font-size: 12px;
 }
 QLineEdit, QTimeEdit, QDateEdit, QComboBox, QSpinBox {
-    background: #F0F2F5; border: 1px solid #CCD0D5;
-    border-radius: 6px; padding: 6px 10px; color: #1C1E21; font-size: 13px;
+    background: #FFFFFF; border: 1px solid #CBD5E1;
+    border-radius: 6px; padding: 6px 10px; color: #1F2937; font-size: 13px;
 }
-QLineEdit:focus, QTimeEdit:focus, QDateEdit:focus { border-color: #3498DB; }
-QComboBox::drop-down { border: none; }
-QComboBox QAbstractItemView { background: #F0F2F5; color: #1C1E21;
-    selection-background-color: #3498DB; }
+QLineEdit:focus, QTimeEdit:focus, QDateEdit:focus { border-color: #3B82F6; background-color: #FFFFFF; }
+QLineEdit:disabled, QTimeEdit:disabled, QDateEdit:disabled, QComboBox:disabled, QSpinBox:disabled {
+    background-color: #E2E8F0; color: #94A3B8; border-color: #CBD5E1;
+}
+QComboBox::drop-down { border: none; background: transparent; width: 20px; }
+QComboBox QAbstractItemView { background: #FFFFFF; color: #1F2937;
+    selection-background-color: #3B82F6; selection-color: white; }
 QListWidget {
-    background: #F0F2F5; border: 1px solid #CCD0D5;
-    border-radius: 8px; color: #1C1E21; font-size: 13px;
+    background: #FFFFFF; border: 1px solid #CBD5E1;
+    border-radius: 8px; color: #1F2937; font-size: 13px;
 }
-QListWidget::item { padding: 8px 10px; border-bottom: 1px solid #CCD0D5; }
-QListWidget::item:selected { background: #3498DB; }
-QScrollBar:vertical { background: #E4E6EB; width: 7px; border-radius: 4px; }
-QScrollBar::handle:vertical { background: #CCD0D5; border-radius: 4px; }
-QCheckBox { color: #1C1E21; font-size: 12px; spacing: 6px; }
+QListWidget::item { padding: 8px 10px; border-bottom: 1px solid #F1F5F9; }
+QListWidget::item:selected { background: #3B82F6; color: white; }
+QScrollBar:vertical { background: #FFFFFF; width: 7px; border-radius: 4px; }
+QScrollBar::handle:vertical { background: #CBD5E1; border-radius: 4px; }
+QCheckBox { color: #1F2937; font-size: 12px; spacing: 6px; }
+QCheckBox:disabled { color: #94A3B8; }
 QCheckBox::indicator { width: 16px; height: 16px; border-radius: 4px;
-    border: 2px solid #CCD0D5; background: #FFFFFF; }
-QCheckBox::indicator:checked { background: #3498DB; border-color: #3498DB; }
-QCheckBox::indicator:hover { border-color: #3498DB; }
-QGroupBox { border: 1px solid #CCD0D5; border-radius: 8px;
-    margin-top: 8px; padding-top: 6px; color: #606770; font-size: 12px; }
+    border: 2px solid #CBD5E1; background: #FFFFFF; }
+QCheckBox::indicator:checked { background: #3B82F6; border-color: #3B82F6; }
+QCheckBox::indicator:hover { border-color: #3B82F6; }
+QCheckBox::indicator:disabled { background: #E2E8F0; border-color: #CBD5E1; }
+QGroupBox { border: 1px solid #E2E8F0; border-radius: 8px;
+    margin-top: 8px; padding-top: 6px; color: #4B5563; font-size: 12px; }
 QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
 """
 
@@ -97,14 +102,20 @@ QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
 def _btn(text: str, color: str, min_h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(min_h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {color}CC;"
     b.setStyleSheet(
-        f"background-color:{color}; color: #1C1E21; font-weight:bold;"
-        f" border-radius:6px; font-size:13px; padding:0 14px;"
+        f"QPushButton{{background-color:{color}; color:{text_color}; font-weight:bold;"
+        f" border-radius:6px; font-size:13px; padding:0 14px; {border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
     )
     return b
 
 
-def _label(text: str, color: str = "white", size: int = 13, bold: bool = False) -> QLabel:
+def _label(text: str, color: str = "#1C1E21", size: int = 13, bold: bool = False) -> QLabel:
     l = QLabel(text)
     l.setStyleSheet(
         f"color:{color}; font-size:{size}px;"
@@ -961,8 +972,9 @@ class WeeklyCalendarTab(QWidget):
             lbl.setAlignment(Qt.AlignCenter)
             lbl.setTextFormat(Qt.RichText)
             bg = "#2980B9" if is_today else "#F0F2F5"
+            txt_color = "white" if is_today else "#1C1E21"
             lbl.setStyleSheet(
-                f"background:{bg};color: #1C1E21;border-radius:6px;"
+                f"background:{bg};color: {txt_color};border-radius:6px;"
                 f"padding:8px 4px;font-size:12px;"
             )
             self.grid.addWidget(lbl, 0, d + 1)
@@ -977,7 +989,7 @@ class WeeklyCalendarTab(QWidget):
             ca_lbl.setTextFormat(Qt.RichText)
             ca_lbl.setAlignment(Qt.AlignCenter)
             ca_lbl.setStyleSheet(
-                f"background:{color};color: #1C1E21;border-radius:6px;"
+                f"background:{color};color: white;border-radius:6px;"
                 f"padding:8px 6px;font-size:12px;"
             )
             self.grid.addWidget(ca_lbl, row, 0)

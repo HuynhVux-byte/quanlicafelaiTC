@@ -81,7 +81,7 @@ QLineEdit, QComboBox, QSpinBox, QTextEdit {{
     border-radius:6px; padding:8px 10px; color:{TEXT}; font-size:16px;
 }}
 QLineEdit:focus, QComboBox:focus, QTextEdit:focus {{ border-color:{ACCENT}; }}
-QComboBox::drop-down {{ border:none; }}
+QComboBox::drop-down {{ border: none; background: transparent; width: 20px; }}
 QComboBox QAbstractItemView {{
     background:{BG_CARD}; color:{TEXT};
     selection-background-color:{ACCENT};
@@ -106,9 +106,15 @@ QRadioButton::indicator:checked {{ background:{ACCENT}; border-color:{ACCENT}; }
 def _btn(text: str, color: str, h: int = 42) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#7f8c8d")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #E2E8F0;" if is_light else f"background: {color}CC;"
     b.setStyleSheet(
-        f"background:{color}; color: #1C1E21; font-weight:bold;"
-        f" border-radius:6px; font-size:16px; padding:0 14px;"
+        f"QPushButton {{ background-color:{color}; color:{text_color}; font-weight:bold;"
+        f" border-radius:6px; font-size:14px; padding:0 14px; {border_style} }}"
+        f"QPushButton:hover {{ {hover_bg} }}"
     )
     return b
 
@@ -464,26 +470,31 @@ class InvoiceTable(QTableWidget):
     def __init__(self, parent=None):
         super().__init__(0, 5, parent)
         self.setHorizontalHeaderLabels(["Tên Món", "SL", "Đơn Giá", "Thành Tiền", ""])
+        self.setMinimumWidth(370)
         
         self.setStyleSheet("""
             QTableWidget {
-                background: #F0F2F5; border: none; gridline-color: #CCD0D5;
-                color: #1C1E21; font-size: 16px; border-radius: 8px;
+                background-color: #FFFFFF; border: 1px solid #CBD5E1; gridline-color: #F1F5F9;
+                color: #1F2937; font-size: 14px; border-radius: 8px;
             }
-            QTableWidget::item { padding: 8px; border-bottom: 1px solid #CCD0D5; }
-            QTableWidget::item:selected { background: #3498DB; color: white; }
+            QTableWidget::item { padding: 8px; border-bottom: 1px solid #F1F5F9; }
+            QTableWidget::item:selected { background-color: #3B82F6; color: white; }
             QHeaderView::section {
-                background: #E4E6EB; color: #606770; padding: 10px;
-                border: none; font-weight: bold; font-size: 14px;
+                background-color: #F1F5F9; color: #334155; padding: 8px 6px;
+                border: none; border-bottom: 2px solid #CBD5E1; border-right: 1px solid #E2E8F0;
+                font-weight: bold; font-size: 13px;
             }
         """)
 
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         hh = self.horizontalHeader()
         hh.setSectionResizeMode(self.COL_NAME,  QHeaderView.Stretch)
         hh.setSectionResizeMode(self.COL_QTY,   QHeaderView.Fixed)
-        self.setColumnWidth(self.COL_QTY, 40)
-        hh.setSectionResizeMode(self.COL_PRICE, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(self.COL_TOTAL, QHeaderView.ResizeToContents)
+        self.setColumnWidth(self.COL_QTY, 30)
+        hh.setSectionResizeMode(self.COL_PRICE, QHeaderView.Fixed)
+        self.setColumnWidth(self.COL_PRICE, 70)
+        hh.setSectionResizeMode(self.COL_TOTAL, QHeaderView.Fixed)
+        self.setColumnWidth(self.COL_TOTAL, 80)
         hh.setSectionResizeMode(self.COL_BTN,   QHeaderView.Fixed)
         self.setColumnWidth(self.COL_BTN, 70)
 
@@ -567,10 +578,10 @@ class InvoiceTable(QTableWidget):
                 if it["note"]:                        extras.append(f"📝 {it['note']}")
 
             display = it["name"]
-            row_h   = 40
+            row_h   = 44
             if extras:
                 display += f"\n  ↳ {', '.join(extras)}"
-                row_h    = 54
+                row_h    = 58
             self.setRowHeight(row, row_h)
 
             fg_main = "#2ECC71" if is_gift else TEXT
@@ -614,15 +625,18 @@ class InvoiceTable(QTableWidget):
                 btn_w = QWidget()
                 btn_w.setStyleSheet("background:transparent;")
                 hl = QHBoxLayout(btn_w)
-                hl.setContentsMargins(2, 2, 2, 2)
-                hl.setSpacing(3)
+                hl.setContentsMargins(0, 0, 0, 0)
+                hl.setSpacing(4)
+                hl.setAlignment(Qt.AlignCenter)
                 btn_m = QPushButton("−")
                 btn_p = QPushButton("+")
                 for b, c in [(btn_m, RED), (btn_p, GREEN)]:
-                    b.setFixedSize(28, 28)
+                    b.setFixedSize(26, 26)
+                    b.setCursor(Qt.PointingHandCursor)
                     b.setStyleSheet(
-                        f"background:{c}; color: #1C1E21; font-weight:bold;"
-                        f" font-size:15px; border-radius:5px; padding:0;"
+                        f"QPushButton {{ background:{c}; color: white; font-weight:bold;"
+                        f" font-size:15px; border-radius:5px; padding:0; border:none; }}"
+                        f"QPushButton:hover {{ background:{c}CC; }}"
                     )
                 btn_m.clicked.connect(lambda *_, r=row: self._dec(r))
                 btn_p.clicked.connect(lambda *_, r=row: self._inc(r))

@@ -8,6 +8,34 @@ from utils.session_manager import get_valid_session, save_session
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyleSheet("""
+        QCalendarWidget QWidget#qt_calendar_navigationbar {
+            background-color: #F1F5F9; border-bottom: 1px solid #CBD5E1;
+        }
+        QCalendarWidget QToolButton {
+            color: #1F2937; font-weight: bold; background-color: transparent;
+            border: none; border-radius: 4px; margin: 3px; padding: 4px;
+        }
+        QCalendarWidget QToolButton:hover {
+            background-color: #E2E8F0;
+        }
+        QCalendarWidget QToolButton::menu-indicator {
+            image: none;
+        }
+        QCalendarWidget QSpinBox {
+            background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; margin-right: 3px; color: #1F2937;
+        }
+        QCalendarWidget QSpinBox::up-button, QCalendarWidget QSpinBox::down-button {
+            subcontrol-origin: border; width: 16px;
+        }
+        QCalendarWidget QTableView {
+            background-color: #FFFFFF; border: none; gridline-color: #F1F5F9;
+            selection-background-color: #3B82F6; selection-color: white;
+        }
+        QCalendarWidget QTableView::item {
+            border-radius: 4px;
+        }
+    """)
     init_db_and_seed()
 
     # Vòng lặp vô tận để xử lý chu kỳ Đăng nhập -> Bán hàng -> Đăng xuất

@@ -33,17 +33,17 @@ CHECKIN_EARLY_MIN  = 15   # phút — cho phép vào sớm trước giờ ca
 CHECKOUT_EARLY_MIN = 15   # phút — cho phép ra sớm trước giờ kết thúc
 
 # ── Màu ──────────────────────────────────────────────────────────────────────
-BG       = "#FFFFFF"
-BG_CARD  = "#F0F2F5"
-BG_ALT   = "#F0F2F5"
-ACCENT   = "#3498DB"
+BG       = "#F3F4F6"
+BG_CARD  = "#FFFFFF"
+BG_ALT   = "#F1F5F9"
+ACCENT   = "#3B82F6"
 GREEN    = "#27AE60"
 ORANGE   = "#E67E22"
 RED      = "#E74C3C"
 YELLOW   = "#F1C40F"
-TEXT     = "#1C1E21"
-TEXT_DIM = "#606770"
-BORDER   = "#CCD0D5"
+TEXT     = "#1F2937"
+TEXT_DIM = "#475569"
+BORDER   = "#CBD5E1"
 
 CA_COLOR = {
     "Ca Sáng":  "#F39C12",
@@ -53,36 +53,37 @@ CA_COLOR = {
 
 STATUS_META = {
     # tên               màu chữ    màu nền badge    icon
-    "Chưa đến":      ("#1C1E21", "#CCD0D540",    "⏳"),
-    "Đang làm":      ("#00FF88", "#00C86840",    "🟢"),
-    "Đi trễ":        ("#FFB347", "#FF8C0040",    "⚠️"),
-    "Đã hoàn thành": ("#4FC3F7", "#0288D140",    "✅"),
-    "Về sớm":        ("#FFE066", "#FFD00040",    "⬇️"),
-    "Vắng":          ("#FF6B6B", "#E53935 40",   "❌"),
+    "Chưa đến":      ("#1F2937", "#CBD5E180",    "⏳"),
+    "Đang làm":      ("#00796B", "#00C86840",    "🟢"),
+    "Đi trễ":        ("#D84315", "#FF8C0040",    "⚠️"),
+    "Đã hoàn thành": ("#0277BD", "#0288D140",    "✅"),
+    "Về sớm":        ("#F57F17", "#FFD00040",    "⬇️"),
+    "Vắng":          ("#C62828", "#E5393540",    "❌"),
 }
 
 STYLE = f"""
-QDialog, QWidget  {{ background:{BG}; color:{TEXT}; font-family:'Segoe UI'; }}
+QDialog  {{ background:{BG}; color:{TEXT}; font-family:'Segoe UI'; }}
 QLabel            {{ background:transparent; }}
 QTableWidget {{
-    background:{BG_CARD}; border:none; border-radius:10px;
-    gridline-color:{BORDER}; color:#1C1E21; font-size:13px;
+    background:{BG_CARD}; border:1px solid {BORDER}; border-radius:10px;
+    gridline-color:#F1F5F9; color:{TEXT}; font-size:13px;
 }}
-QTableWidget::item          {{ padding:7px 8px; border-bottom:1px solid {BORDER}; }}
-QTableWidget::item:selected {{ background:{ACCENT}44; color: #1C1E21; }}
+QTableWidget::item          {{ padding:8px 6px; border-bottom:1px solid #F1F5F9; }}
+QTableWidget::item:selected {{ background:{ACCENT}; color: white; }}
 QHeaderView::section {{
-    background:{BG_ALT}; color: #1C1E21; padding:9px 8px;
-    border:none; font-weight:bold; font-size:13px; letter-spacing:0.5px;
+    background:{BG_ALT}; color: {TEXT_DIM}; padding:8px 6px;
+    border:none; border-bottom:2px solid {BORDER}; border-right:1px solid #E2E8F0; font-weight:bold; font-size:12px;
 }}
 QDateEdit, QComboBox {{
     background:{BG_CARD}; border:1px solid {BORDER};
     border-radius:6px; padding:5px 10px; color:{TEXT}; font-size:13px;
 }}
-QDateEdit:focus, QComboBox:focus {{ border-color:{ACCENT}; }}
-QComboBox::drop-down  {{ border:none; }}
+QDateEdit:focus, QComboBox:focus {{ border-color:{ACCENT}; background-color:#FFFFFF; }}
+QDateEdit:disabled, QComboBox:disabled {{ background-color:#E2E8F0; color:#94A3B8; border-color:{BORDER}; }}
+QComboBox::drop-down {{ border: none; background: transparent; width: 20px; }}
 QComboBox QAbstractItemView {{
-    background:{BG_CARD}; color:{TEXT};
-    selection-background-color:{ACCENT};
+    background:#FFFFFF; color:{TEXT};
+    selection-background-color:{ACCENT}; selection-color:white;
 }}
 QPushButton {{
     border-radius:6px; font-weight:bold; font-size:13px;
@@ -97,9 +98,15 @@ QScrollBar::handle:vertical {{ background:{BORDER}; border-radius:4px; min-heigh
 def _btn(text: str, color: str, h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {color}CC;"
     b.setStyleSheet(
-        f"background:{color}; color: #1C1E21; font-weight:bold;"
-        f" border-radius:6px; font-size:13px; padding:0 14px;"
+        f"QPushButton{{background:{color};color:{text_color};font-weight:bold;"
+        f"border-radius:6px;font-size:13px;padding:0 14px;{border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
     )
     return b
 
@@ -453,7 +460,7 @@ class AttendanceDialog(QDialog):
                 f"QComboBox {{ background:#FFFFFF; border:1px solid {BORDER};"
                 f" border-radius:5px; padding:0 8px; color:{TEXT}; font-size:13px; }}"
                 f"QComboBox:focus {{ border-color:{ACCENT}; }}"
-                f"QComboBox::drop-down {{ border:none; }}"
+                f"QComboBox::drop-down {{ border: none; background: transparent; width: 20px; }}"
                 f"QComboBox QAbstractItemView {{ background:{BG_CARD}; color:{TEXT};"
                 f" selection-background-color:{ACCENT}; }}"
             )
@@ -504,13 +511,13 @@ class AttendanceDialog(QDialog):
         self._stat_labels: dict[str, QLabel] = {}
 
         stat_defs = [
-            ("Tổng ca",        "#FFFFFF", BG_CARD, BORDER),
-            ("Chưa đến",       "#FFFFFF", BG_CARD, BORDER),
-            ("Đang làm",       "#FFFFFF", BG_CARD, BORDER),
-            ("Đi trễ",         "#FFFFFF", BG_CARD, BORDER),
-            ("Đã hoàn thành",  "#FFFFFF", BG_CARD, BORDER),
-            ("Về sớm",         "#FFFFFF", BG_CARD, BORDER),
-            ("Vắng",           "#FFFFFF", BG_CARD, BORDER),
+            ("Tổng ca",        "#1C1E21", BG_CARD, BORDER),
+            ("Chưa đến",       "#606770", BG_CARD, BORDER),
+            ("Đang làm",       "#00796B", BG_CARD, BORDER),
+            ("Đi trễ",         "#D84315", BG_CARD, BORDER),
+            ("Đã hoàn thành",  "#0277BD", BG_CARD, BORDER),
+            ("Về sớm",         "#F57F17", BG_CARD, BORDER),
+            ("Vắng",           "#C62828", BG_CARD, BORDER),
         ]
 
         for label, txt_color, bg_color, border_color in stat_defs:

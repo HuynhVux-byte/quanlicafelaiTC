@@ -117,11 +117,14 @@ def authenticate_user(email: str, password: str):
 
     session = get_session()
     try:
-        user = session.query(NhanVien).filter_by(email=email).first()
+        from sqlalchemy import or_
+        user = session.query(NhanVien).filter(
+            or_(NhanVien.email == email, NhanVien.ten_dang_nhap == email)
+        ).first()
         if user is None:
             ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
                 hanh_dong="Đăng nhập", ket_qua="Sai mật khẩu",
-                ghi_chu="Tài khoản email không tồn tại")
+                ghi_chu="Tài khoản hoặc email không tồn tại")
             return None
         if user.trang_thai == "Tạm khóa":
             ghi_nhat_ky_dang_nhap(ten_dang_nhap=email,
@@ -167,8 +170,11 @@ def authenticate_user(email: str, password: str):
                 else:
                     ten_ca_log = f"{ca_checkin_obj.ten_ca} (đã check-in)"
             else:
-                # Có phân công nhưng chưa đến giờ bất kỳ ca nào
-                ten_ca_log = "Có ca nhưng ngoài giờ"
+                if user.chuc_vu != "Admin":
+                    ghi_nhat_ky_dang_nhap(ten_dang_nhap=email, hanh_dong="Đăng nhập",
+                                          ket_qua="Thất bại", ghi_chu="Chưa đến giờ check-in ca")
+                    return {"error": "Chưa đến giờ check-in. Vui lòng quay lại trước giờ ca 15 phút."}
+                ten_ca_log = "Có ca nhưng ngoài giờ (Admin)"
         else:
             # Không có phân công → Khong_ca
             cc_tu_do = (session.query(ChamCong)

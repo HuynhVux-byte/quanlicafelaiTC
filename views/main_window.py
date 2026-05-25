@@ -4,7 +4,8 @@ from PySide6.QtWidgets import (QApplication, QLineEdit, QMainWindow, QWidget, QH
                                QVBoxLayout, QPushButton, QTableWidget,
                                QTableWidgetItem, QHeaderView, QLabel, QMessageBox,
                                QGridLayout, QScrollArea, QFrame, QDialog, QListWidget,
-                               QListWidgetItem, QAbstractItemView, QSizePolicy, QCheckBox)
+                               QListWidgetItem, QAbstractItemView, QSizePolicy, QCheckBox,
+                               QGraphicsDropShadowEffect)
 from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtGui import QCursor, QFont, QColor, QPixmap
 from PySide6.QtMultimedia import QSoundEffect
@@ -36,8 +37,8 @@ class ProductCard(QFrame):
         self.click_callback = click_callback
 
         self.setStyleSheet("""
-            ProductCard { background-color: #F0F2F5; border-radius: 12px; border: 1px solid #CCD0D5; }
-            ProductCard:hover { border: 2px solid #3498DB; background-color: #D8DADF; }
+            ProductCard { background-color: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB; }
+            ProductCard:hover { border: 2px solid #3498DB; background-color: #F3F4F6; }
         """)
 
         layout = QHBoxLayout(self)
@@ -108,8 +109,8 @@ class ProductCard(QFrame):
             )
             self.setEnabled(False)
             self.setStyleSheet(
-                "ProductCard { background-color: #E4E6EB; border-radius: 12px;"
-                " border: 1px solid #E74C3C; }"
+                "ProductCard { background-color: #F3F4F6; border-radius: 12px;"
+                " border: 1px solid #EF4444; }"
             )
         elif available_qty == -1:
             stock_lbl.setText("")
@@ -202,7 +203,7 @@ class POSWindow(QMainWindow):
         self._co_ca = self._kiem_tra_co_ca()
         self.setWindowTitle("Hệ Thống Quản Lý Quán Cà Phê")
         self.resize(1200, 750)
-        self.setStyleSheet("background-color: #FFFFFF; color: #1C1E21;")
+        self.setStyleSheet("QMainWindow { background-color: #F3F4F6; } QLabel { color: #1F2937; } QCheckBox { color: #1F2937; }")
 
         # Ghi nhật ký đăng nhập vào POS
         _log(self.user.id, "Đăng nhập POS",
@@ -217,30 +218,49 @@ class POSWindow(QMainWindow):
 
         # ── NỬA TRÁI: MENU ──────────────────────────────────────────
         left_panel = QWidget()
-        left_panel.setStyleSheet("background-color: #E4E6EB; border-radius: 15px;")
+        left_panel.setObjectName("left_panel")
+        left_panel.setStyleSheet("#left_panel { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 15px; }")
+        
+        shadow_left = QGraphicsDropShadowEffect(self)
+        shadow_left.setBlurRadius(15)
+        shadow_left.setXOffset(0)
+        shadow_left.setYOffset(4)
+        shadow_left.setColor(QColor(0, 0, 0, 18))
+        left_panel.setGraphicsEffect(shadow_left)
+
         left_layout = QVBoxLayout(left_panel)
 
         header_layout = QHBoxLayout()
         title_lbl = QLabel("📋 DANH MỤC MÓN")
-        title_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #3498DB;")
+        title_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #3B82F6;")
         header_layout.addWidget(title_lbl)
 
         # Nút CHECK-OUT CA (kết thúc ca làm, tính công)
         self.btn_ca_checkout = QPushButton("⏱️ Check-out Ca")
-        self.btn_ca_checkout.setStyleSheet(
-            "background-color: #E67E22; color: white; font-weight: bold;"
-            " padding: 8px; border-radius: 6px;"
-        )
+        self.btn_ca_checkout.setCursor(Qt.PointingHandCursor)
+        self.btn_ca_checkout.setStyleSheet("""
+            QPushButton {
+                background-color: #F97316; color: white; font-weight: bold;
+                padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px;
+            }
+            QPushButton:hover { background-color: #EA580C; }
+            QPushButton:pressed { background-color: #C2410C; }
+        """)
         self.btn_ca_checkout.setToolTip("Kết thúc ca làm việc — tính giờ & chốt số liệu")
         self.btn_ca_checkout.clicked.connect(self.handle_ca_checkout)
         header_layout.addWidget(self.btn_ca_checkout, alignment=Qt.AlignRight)
 
         # Nút ĐĂNG XUẤT (thoát phiên ứng dụng)
         self.btn_logout = QPushButton(f"🚪 Đăng xuất ({self.user.ten_dang_nhap})")
-        self.btn_logout.setStyleSheet(
-            "background-color: #C0392B; color: white; font-weight: bold;"
-            " padding: 8px; border-radius: 6px;"
-        )
+        self.btn_logout.setCursor(Qt.PointingHandCursor)
+        self.btn_logout.setStyleSheet("""
+            QPushButton {
+                background-color: #EF4444; color: white; font-weight: bold;
+                padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px;
+            }
+            QPushButton:hover { background-color: #DC2626; }
+            QPushButton:pressed { background-color: #B91C1C; }
+        """)
         self.btn_logout.clicked.connect(self.logout)
         header_layout.addWidget(self.btn_logout, alignment=Qt.AlignRight)
         left_layout.addLayout(header_layout)
@@ -250,10 +270,10 @@ class POSWindow(QMainWindow):
         self.search_bar.setPlaceholderText("🔍 Nhập tên món để tìm kiếm nhanh...")
         self.search_bar.setStyleSheet("""
             QLineEdit {
-                background-color: #F0F2F5; border: 1px solid #CCD0D5;
-                border-radius: 20px; padding: 10px 15px; color: #1C1E21; font-size: 16px;
+                background-color: #F8FAFC; border: 1px solid #CBD5E1;
+                border-radius: 20px; padding: 10px 15px; color: #1F2937; font-size: 14px;
             }
-            QLineEdit:focus { border: 1px solid #3498DB; background-color: #D8DADF; }
+            QLineEdit:focus { border: 1px solid #3B82F6; background-color: #FFFFFF; }
         """)
         self.search_bar.textChanged.connect(self.filter_products)
         left_layout.addWidget(self.search_bar)
@@ -304,16 +324,30 @@ class POSWindow(QMainWindow):
         self.menu_btn    = QPushButton("⚙️ MENU")
         self.func_btn    = QPushButton("☰ CHỨC NĂNG ▾")   # popup menu
 
-        for btn in [self.history_btn, self.report_btn, self.menu_btn, self.func_btn]:
+        for btn in [self.history_btn, self.report_btn, self.menu_btn]:
             btn.setMinimumHeight(45)
-            btn.setStyleSheet(
-                "background-color: #34495E; color: white; font-weight: bold; border-radius: 8px;"
-            )
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #FFFFFF; color: #374151; font-weight: bold;
+                    border-radius: 8px; border: 1px solid #CBD5E1; font-size: 13px;
+                }
+                QPushButton:hover { background-color: #F8FAFC; color: #1E293B; border-color: #94A3B8; }
+                QPushButton:pressed { background-color: #F1F5F9; }
+            """)
             func_layout.addWidget(btn)
 
-        self.func_btn.setStyleSheet(
-            "background-color: #2C3E50; color: white; font-weight: bold; border-radius: 8px;"
-        )
+        self.func_btn.setMinimumHeight(45)
+        self.func_btn.setCursor(Qt.PointingHandCursor)
+        self.func_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1E293B; color: white; font-weight: bold;
+                border-radius: 8px; border: none; font-size: 13px;
+            }
+            QPushButton:hover { background-color: #334155; }
+            QPushButton:pressed { background-color: #0F172A; }
+        """)
+        func_layout.addWidget(self.func_btn)
 
         self.history_btn.clicked.connect(self.show_history_dialog)
         self.report_btn.clicked.connect(self.show_report)
@@ -325,11 +359,21 @@ class POSWindow(QMainWindow):
 
         # ── NỬA PHẢI: HÓA ĐƠN ──────────────────────────────────────
         right_panel = QWidget()
-        right_panel.setStyleSheet("background-color: #E4E6EB; border-radius: 15px;")
+        right_panel.setObjectName("right_panel")
+        right_panel.setMinimumWidth(395)
+        right_panel.setStyleSheet("#right_panel { background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 15px; }")
+        
+        shadow_right = QGraphicsDropShadowEffect(self)
+        shadow_right.setBlurRadius(15)
+        shadow_right.setXOffset(0)
+        shadow_right.setYOffset(4)
+        shadow_right.setColor(QColor(0, 0, 0, 18))
+        right_panel.setGraphicsEffect(shadow_right)
+
         self.right_layout = QVBoxLayout(right_panel)
 
         inv_title = QLabel("🧾 HÓA ĐƠN")
-        inv_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2ECC71;")
+        inv_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #10B981;")
         inv_title.setAlignment(Qt.AlignCenter)
         self.right_layout.addWidget(inv_title)
 
@@ -344,20 +388,30 @@ class POSWindow(QMainWindow):
         action_row.setSpacing(6)
 
         self.btn_apply_km = QPushButton("🎉 Khuyến mãi")
-        self.btn_apply_km.setMinimumHeight(36)
-        self.btn_apply_km.setStyleSheet(
-            "background-color: #E67E22; color: white; font-weight: bold;"
-            " border-radius: 8px; font-size: 15px;"
-        )
+        self.btn_apply_km.setMinimumHeight(38)
+        self.btn_apply_km.setCursor(Qt.PointingHandCursor)
+        self.btn_apply_km.setStyleSheet("""
+            QPushButton {
+                background-color: #F97316; color: white; font-weight: bold;
+                border-radius: 8px; font-size: 14px; border: none;
+            }
+            QPushButton:hover { background-color: #EA580C; }
+            QPushButton:pressed { background-color: #C2410C; }
+        """)
         self.btn_apply_km.clicked.connect(self._apply_khuyen_mai)
         action_row.addWidget(self.btn_apply_km)
 
         self.btn_loyalty = QPushButton("⭐ Điểm TV")
-        self.btn_loyalty.setMinimumHeight(36)
-        self.btn_loyalty.setStyleSheet(
-            "background-color: #8E44AD; color: white; font-weight: bold;"
-            " border-radius: 8px; font-size: 15px;"
-        )
+        self.btn_loyalty.setMinimumHeight(38)
+        self.btn_loyalty.setCursor(Qt.PointingHandCursor)
+        self.btn_loyalty.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6; color: white; font-weight: bold;
+                border-radius: 8px; font-size: 14px; border: none;
+            }
+            QPushButton:hover { background-color: #7C3AED; }
+            QPushButton:pressed { background-color: #6D28D9; }
+        """)
         self.btn_loyalty.clicked.connect(self._open_loyalty)
         action_row.addWidget(self.btn_loyalty)
 
@@ -366,9 +420,9 @@ class POSWindow(QMainWindow):
         # Label hiển thị KM đang áp dụng (ẩn khi chưa có)
         self.lbl_km_applied = QLabel("")
         self.lbl_km_applied.setStyleSheet(
-            "background-color: #F0F2F5; border: 1px solid #E67E22;"
+            "background-color: #FFF7ED; border: 1px solid #FED7AA;"
             " border-radius: 6px; padding: 6px 10px;"
-            " font-size: 12px; color: #E67E22;"
+            " font-size: 12px; color: #EA580C; font-weight: bold;"
         )
         self.lbl_km_applied.setWordWrap(True)
         self.lbl_km_applied.setVisible(False)
@@ -377,9 +431,9 @@ class POSWindow(QMainWindow):
         # Label hiển thị khách thành viên đang liên kết (ẩn khi chưa có)
         self.lbl_loyalty_info = QLabel("")
         self.lbl_loyalty_info.setStyleSheet(
-            "background-color: #F0F2F5; border: 1px solid #8E44AD;"
+            "background-color: #FAF5FF; border: 1px solid #E9D5FF;"
             " border-radius: 6px; padding: 6px 10px;"
-            " font-size: 12px; color: #C39BD3;"
+            " font-size: 12px; color: #7E22CE; font-weight: bold;"
         )
         self.lbl_loyalty_info.setWordWrap(True)
         self.lbl_loyalty_info.setVisible(False)
@@ -387,16 +441,21 @@ class POSWindow(QMainWindow):
 
         self.total_label = QLabel("Tổng cộng: 0 Đ")
         self.total_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; color: #E74C3C; background-color: transparent;"
+            "font-size: 24px; font-weight: bold; color: #EF4444; background-color: transparent;"
         )
         self.right_layout.addWidget(self.total_label)
 
         self.checkout_btn = QPushButton("XUẤT HÓA ĐƠN")
         self.checkout_btn.setMinimumHeight(60)
-        self.checkout_btn.setStyleSheet(
-            "background-color: #27AE60; color: white; font-size: 18px;"
-            " font-weight: bold; border-radius: 10px;"
-        )
+        self.checkout_btn.setCursor(Qt.PointingHandCursor)
+        self.checkout_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #10B981; color: white; font-size: 18px;
+                font-weight: bold; border-radius: 10px; border: none;
+            }
+            QPushButton:hover { background-color: #059669; }
+            QPushButton:pressed { background-color: #047857; }
+        """)
         self.checkout_btn.clicked.connect(self.handle_checkout)
         self.right_layout.addWidget(self.checkout_btn)
 
@@ -434,8 +493,8 @@ class POSWindow(QMainWindow):
         self.report_btn.setVisible(co_quyen(role, "xem_bao_cao"))
         self.menu_btn.setVisible(co_quyen(role, "quan_ly_menu"))
 
-        # Nút Check-out Ca: chỉ hiện khi có ca hôm nay và không phải Admin
-        self.btn_ca_checkout.setVisible(role != "Admin" and self._co_ca)
+        # Nút Check-out Ca: luôn hiện để cho phép check-out thủ công
+        self.btn_ca_checkout.setVisible(True)
 
         # Nút CHỨC NĂNG: hiện nếu có ít nhất 1 quyền trong menu
         func_quyen = [
@@ -573,12 +632,12 @@ class POSWindow(QMainWindow):
         else:
             btn.setStyleSheet(
                 "QPushButton {"
-                " background-color: #F0F2F5; color: #606770; font-weight: bold;"
+                " background-color: #F1F5F9; color: #4B5563; font-weight: bold;"
                 " border-radius: 17px; font-size: 14px; padding: 0 16px;"
-                " border: 1px solid #CCD0D5;"
+                " border: 1px solid #E2E8F0;"
                 "}"
                 "QPushButton:hover {"
-                " background-color: #D8DADF; color: white; border: 1px solid #3498DB;"
+                " background-color: #E2E8F0; color: #1F2937; border: 1px solid #CBD5E1;"
                 "}"
             )
 
@@ -783,440 +842,27 @@ class POSWindow(QMainWindow):
         else:
             self.lbl_km_applied.setVisible(False)
 
-    # ----------------------------------------------------------------
-    # FIX: Lưu dữ liệu giá vào UserRole thay vì dùng closure để tránh
-    #      lỗi row index bị lệch sau khi xóa dòng.
-    # ----------------------------------------------------------------
     def _rebuild_action_buttons(self):
-        """Vẽ lại toàn bộ widget SL+-  theo row index hiện tại. Bỏ qua row ghi chú."""
-        for row in range(self.order_table.rowCount()):
-            # Col 3 là widget SL+-; dùng col 1 (đơn giá) để tính price
-            don_gia_item   = self.order_table.item(row, 1)
-            thanh_tien_item = self.order_table.item(row, 2)
-            # Row ghi chú: col 1 có UserRole "note_row"
-            col1 = self.order_table.item(row, 1)
-            if col1 and col1.data(Qt.UserRole) == "note_row":
-                self.order_table.setCellWidget(row, 3, None)
-                continue
-            if not don_gia_item or not thanh_tien_item:
-                continue
-            try:
-                price = float(don_gia_item.text().replace(",", ""))
-                total = float(thanh_tien_item.text().replace(",", ""))
-                qty   = round(total / price) if price else 1
-            except (ValueError, ZeroDivisionError):
-                continue
-            self.order_table.setCellWidget(row, 3, self._make_btn_widget(row, price))
+        pass
 
-    def _make_btn_widget(self, row: int, price: float) -> QWidget:
-        container = QWidget()
-        h = QHBoxLayout(container)
-        h.setContentsMargins(2, 2, 2, 2)
-        h.setSpacing(2)
-
-        btn_minus = QPushButton("−")
-        btn_plus  = QPushButton("+")
-        style = (
-            "font-weight: bold; min-width: 24px; max-width: 24px;"
-            " min-height: 24px; max-height: 24px;"
-            " background-color: #34495E; color: white; border-radius: 4px;"
-        )
-        btn_minus.setStyleSheet(style)
-        btn_plus.setStyleSheet(style)
-
-        # Label số lượng ở giữa
-        thanh_tien_item = self.order_table.item(row, 2)
-        don_gia_item    = self.order_table.item(row, 1)
-        try:
-            total = float(thanh_tien_item.text().replace(",", "")) if thanh_tien_item else 0
-            qty   = round(total / price) if price else 1
-        except (ValueError, ZeroDivisionError):
-            qty = 1
-        qty_lbl = QLabel(str(qty))
-        qty_lbl.setAlignment(Qt.AlignCenter)
-        qty_lbl.setMinimumWidth(24)
-        qty_lbl.setStyleSheet(
-            "color: #1C1E21; font-weight: bold; font-size: 13px; background: transparent;"
-        )
-        qty_lbl.setObjectName(f"qty_lbl_{row}")
-
-        btn_minus.clicked.connect(lambda checked=False, r=row, p=price: self._change_qty(r, -1, p))
-        btn_plus.clicked.connect(lambda checked=False, r=row, p=price: self._change_qty(r, 1, p))
-
-        h.addWidget(btn_minus)
-        h.addWidget(qty_lbl)
-        h.addWidget(btn_plus)
-        return container
-
-    def _change_qty(self, row: int, delta: int, price: float):
-        """Thay đổi số lượng. Nếu về 0 thì xóa cả dòng món lẫn dòng ghi chú liền dưới."""
-        if row >= self.order_table.rowCount():
-            return
-        thanh_tien_item = self.order_table.item(row, 2)
-        if not thanh_tien_item:
-            return
-        try:
-            total   = float(thanh_tien_item.text().replace(",", ""))
-            cur_qty = round(total / price) if price else 1
-        except (ValueError, ZeroDivisionError):
-            return
-        new_qty = cur_qty + delta
-
-        name_item = self.order_table.item(row, 0)
-        mon_ten   = name_item.text() if name_item else "?"
-
-        if new_qty <= 0:
-            _log(self.user.id, "Hủy món khỏi order",
-                 f"Xóa '{mon_ten}' ({int(price):,}đ) khỏi hóa đơn",
-                 o_dau="POS - Order")
-            note_row = row + 1
-            if (note_row < self.order_table.rowCount() and
-                    self.order_table.item(note_row, 1) and
-                    self.order_table.item(note_row, 1).data(Qt.UserRole) == "note_row"):
-                self.order_table.removeRow(note_row)
-            self.order_table.removeRow(row)
-        else:
-            # Cập nhật thành tiền (đơn giá giữ nguyên ở col 1)
-            self.order_table.setItem(row, 2, QTableWidgetItem(f"{int(new_qty * price):,}"))
-        self._rebuild_action_buttons()
-        self.update_grand_total()
-        self.sound_beep.play()
-        self.highlight_total()
-
-    # Giữ tên cũ để các nơi khác vẫn gọi được (compat)
     def change_qty(self, row, delta, price):
-        self._change_qty(row, delta, price)
+        pass
 
     def add_to_order(self, product):
-        """Thêm món vào hóa đơn card, hoặc tăng SL nếu đã có."""
+        """Thêm món vào bảng order thông qua InvoiceTable."""
         self.order_table.add_item(product['name'], product['price'])
-        self.sound_beep.play()
-        self.highlight_total()
+        try:
+            self.sound_beep.play()
+        except Exception:
+            pass
+        try:
+            self.highlight_total()
+        except Exception:
+            pass
+        self.update_grand_total()
         _log(self.user.id, "Thêm món vào order",
              f"Thêm '{product['name']}' — {int(product['price']):,}đ",
              o_dau="POS - Order")
-        if not self._applied_km:
-            self._auto_apply_best_km()
-
-    def _find_product_row(self, row: int) -> int:
-        """Trả về row chứa món (không phải row ghi chú). -1 nếu không hợp lệ."""
-        if row < 0 or row >= self.order_table.rowCount():
-            return -1
-        item = self.order_table.item(row, 1)
-        if item and item.data(Qt.UserRole) == "note_row":
-            return -1   # đây là row ghi chú
-        if item and item.text().strip():
-            return row  # đây là row món
-        return -1
-
-    def _on_row_double_clicked(self, row: int, col: int):
-        """Double-click vào cột SL → sửa số lượng trực tiếp trên ô.
-        Double-click các cột khác → mở dialog topping/đá/đường."""
-        if col == 3:
-            self._edit_qty_inline(row)
-            return
-
-        # Nếu click vào row ghi chú → mở lại dialog của món cha
-        item_check = self.order_table.item(row, 1)
-        if item_check and item_check.data(Qt.UserRole) == "note_row":
-            parent_col2 = self.order_table.item(row, 2)
-            product_row = parent_col2.data(Qt.UserRole) if parent_col2 else -1
-            if product_row >= 0:
-                self._open_customize_dialog(product_row)
-            return
-
-        product_row = self._find_product_row(row)
-        if product_row < 0:
-            return
-        self._open_customize_dialog(product_row)
-
-    def _edit_qty_inline(self, row: int):
-        """Thay widget SL bằng QLineEdit để nhập trực tiếp, Enter/blur để xác nhận."""
-        don_gia_item    = self.order_table.item(row, 1)
-        thanh_tien_item = self.order_table.item(row, 2)
-        name_item       = self.order_table.item(row, 0)
-        if not don_gia_item or not thanh_tien_item or not name_item:
-            return
-        if don_gia_item.data(Qt.UserRole) == "note_row":
-            return
-        try:
-            price   = float(don_gia_item.text().replace(",", ""))
-            total   = float(thanh_tien_item.text().replace(",", ""))
-            cur_qty = round(total / price) if price else 1
-        except (ValueError, ZeroDivisionError):
-            return
-
-        # Tạo QLineEdit thay thế widget -/+ tạm thời
-        editor = QLineEdit(str(cur_qty))
-        editor.setAlignment(Qt.AlignCenter)
-        editor.setStyleSheet(
-            "background:#3498DB; color:white; font-weight:bold; font-size:14px;"
-            " border:2px solid #5DADE2; border-radius:4px; padding:2px;"
-        )
-        editor.selectAll()
-        self.order_table.setCellWidget(row, 3, editor)
-        editor.setFocus()
-
-        def _confirm():
-            txt = editor.text().strip()
-            try:
-                new_qty = int(txt)
-            except ValueError:
-                # Nhập không hợp lệ → khôi phục widget cũ
-                self._rebuild_action_buttons()
-                return
-            if new_qty == cur_qty:
-                self._rebuild_action_buttons()
-                return
-            if new_qty <= 0:
-                self._change_qty(row, -cur_qty, price)
-            else:
-                self._change_qty(row, new_qty - cur_qty, price)
-
-        editor.returnPressed.connect(_confirm)
-        editor.editingFinished.connect(_confirm)
-
-    def _open_customize_dialog(self, product_row: int):
-        """Dialog tùy chỉnh món: đá, đường, topping, ghi chú tự do."""
-        name_item = self.order_table.item(product_row, 0)
-        if not name_item:
-            return
-        mon_name = name_item.text()
-
-        # Lấy ghi chú hiện tại (nếu đã có)
-        current_note = self._get_note_for_product_row(product_row)
-
-        dlg = QDialog(self)
-        dlg.setWindowTitle(f"⚙️  Tùy chỉnh: {mon_name}")
-        dlg.setFixedWidth(440)
-        dlg.setStyleSheet("""
-            QDialog { background-color: #FFFFFF; color: #1C1E21; }
-            QLabel  { color: #1C1E21; font-size: 13px; }
-            QLineEdit {
-                background: #F0F2F5; border: 1px solid #CCD0D5;
-                border-radius: 6px; padding: 7px 10px;
-                color: #1C1E21; font-size: 13px;
-            }
-            QLineEdit:focus { border-color: #3498DB; }
-            QPushButton {
-                border-radius: 6px; font-size: 12px;
-                font-weight: bold; padding: 6px 10px;
-            }
-        """)
-
-        root = QVBoxLayout(dlg)
-        root.setContentsMargins(18, 16, 18, 16)
-        root.setSpacing(14)
-
-        # Tiêu đề món
-        lbl_title = QLabel(f"🍹  <b>{mon_name}</b>")
-        lbl_title.setStyleSheet("font-size:15px; color:#3498DB;")
-        root.addWidget(lbl_title)
-
-        # ── helper: tạo group nút bấm toggle ──────────────────────
-        def _make_toggle_group(options: list[str], default: str, colors: dict) -> tuple[QHBoxLayout, dict]:
-            """Trả về layout + dict {text: btn} để lấy giá trị đang chọn."""
-            layout = QHBoxLayout()
-            layout.setSpacing(6)
-            btns: dict[str, QPushButton] = {}
-            selected = [default]
-
-            def _select(txt):
-                selected[0] = txt
-                for t, b in btns.items():
-                    active = (t == txt)
-                    bg = colors.get(t, "#3498DB") if active else "#F0F2F5"
-                    border = colors.get(t, "#3498DB") if active else "#CCD0D5"
-                    b.setStyleSheet(
-                        f"background:{bg}; color: #1C1E21; border:2px solid {border};"
-                        f" border-radius:6px; font-size:12px; font-weight:bold; padding:6px 10px;"
-                    )
-
-            for opt in options:
-                b = QPushButton(opt)
-                b.setCursor(Qt.PointingHandCursor)
-                b.clicked.connect(lambda checked=False, t=opt: _select(t))
-                btns[opt] = b
-                layout.addWidget(b)
-
-            _select(default)  # khởi tạo style
-            return layout, btns, selected
-
-        # ── Mức đá ────────────────────────────────────────────────
-        da_opts    = ["❄️ Bình thường", "🧊 Nhiều đá", "🔹 Ít đá", "🚫 Không đá"]
-        da_colors  = {
-            "❄️ Bình thường": "#2980B9",
-            "🧊 Nhiều đá":    "#1ABC9C",
-            "🔹 Ít đá":       "#16A085",
-            "🚫 Không đá":    "#7F8C8D",
-        }
-        root.addWidget(QLabel("🧊  Mức đá:"))
-        da_layout, da_btns, da_sel = _make_toggle_group(da_opts, da_opts[0], da_colors)
-        root.addLayout(da_layout)
-
-        # ── Mức đường ─────────────────────────────────────────────
-        duong_opts   = ["🍬 Bình thường", "🍭 Nhiều đường", "🔸 Ít đường", "🚫 Không đường"]
-        duong_colors = {
-            "🍬 Bình thường":  "#E67E22",
-            "🍭 Nhiều đường":  "#E74C3C",
-            "🔸 Ít đường":     "#F39C12",
-            "🚫 Không đường":  "#7F8C8D",
-        }
-        root.addWidget(QLabel("🍬  Mức đường:"))
-        duong_layout, duong_btns, duong_sel = _make_toggle_group(duong_opts, duong_opts[0], duong_colors)
-        root.addLayout(duong_layout)
-
-        # ── Topping ───────────────────────────────────────────────
-        root.addWidget(QLabel("🧆  Topping thêm:"))
-        topping_opts = [
-            ("🧋 Trân châu",    False),
-            ("🍮 Pudding",      False),
-            ("🥛 Kem tươi",     False),
-            ("🌱 Thạch dừa",    False),
-            ("🫙 Sữa đặc thêm", False),
-        ]
-        topping_frame = QWidget()
-        topping_frame.setStyleSheet("background:transparent;")
-        tp_grid = QGridLayout(topping_frame)
-        tp_grid.setContentsMargins(0, 0, 0, 0)
-        tp_grid.setSpacing(6)
-        tp_checks: list[QCheckBox] = []
-        for i, (tp_name, _) in enumerate(topping_opts):
-            cb = QCheckBox(tp_name)
-            cb.setStyleSheet("""
-                QCheckBox { color: #1C1E21; font-size:12px; spacing:6px; }
-                QCheckBox::indicator { width:16px; height:16px; border-radius:4px;
-                    border:2px solid #CCD0D5; background:#FFFFFF; }
-                QCheckBox::indicator:checked { background:#27AE60; border-color:#27AE60; }
-                QCheckBox::indicator:hover   { border-color:#3498DB; }
-            """)
-            tp_grid.addWidget(cb, i // 3, i % 3)
-            tp_checks.append(cb)
-        root.addWidget(topping_frame)
-
-        # ── Ghi chú tự do ─────────────────────────────────────────
-        root.addWidget(QLabel("✏️  Ghi chú thêm:"))
-        txt_note = QLineEdit()
-        txt_note.setPlaceholderText("VD: không sữa, thêm muối, đóng gói riêng...")
-
-        # Parse lại ghi chú cũ để điền sẵn vào các control
-        _restore_note(current_note, da_btns, da_sel, da_opts,
-                      duong_btns, duong_sel, duong_opts,
-                      tp_checks, topping_opts, txt_note)
-
-        root.addWidget(txt_note)
-
-        # ── Nút OK / Hủy ──────────────────────────────────────────
-        btn_row = QHBoxLayout()
-        btn_ok  = QPushButton("✅  Xác nhận")
-        btn_ok.setMinimumHeight(40)
-        btn_ok.setStyleSheet(
-            "background:#27AE60;color:white;font-weight:bold;"
-            "border-radius:8px;font-size:14px;"
-        )
-        btn_clear = QPushButton("🗑  Xóa tùy chỉnh")
-        btn_clear.setMinimumHeight(40)
-        btn_clear.setStyleSheet(
-            "background:#7F8C8D;color: #1C1E21;font-weight:bold;"
-            "border-radius:8px;font-size:13px;"
-        )
-        btn_cancel = QPushButton("✖  Đóng")
-        btn_cancel.setMinimumHeight(40)
-        btn_cancel.setStyleSheet(
-            "background:#C0392B;color:white;font-weight:bold;"
-            "border-radius:8px;font-size:13px;"
-        )
-        btn_row.addWidget(btn_ok)
-        btn_row.addWidget(btn_clear)
-        btn_row.addWidget(btn_cancel)
-        root.addLayout(btn_row)
-
-        def _build_note_text() -> str:
-            parts = []
-            da_val = da_sel[0]
-            if da_val != da_opts[0]:   # khác bình thường mới ghi
-                parts.append(da_val)
-            duong_val = duong_sel[0]
-            if duong_val != duong_opts[0]:
-                parts.append(duong_val)
-            toppings = [cb.text() for cb in tp_checks if cb.isChecked()]
-            if toppings:
-                parts.append("Topping: " + ", ".join(toppings))
-            free = txt_note.text().strip()
-            if free:
-                parts.append(free)
-            return " | ".join(parts)
-
-        def _confirm():
-            note_text = _build_note_text()
-            self._set_note_for_product_row(product_row, note_text)
-            dlg.accept()
-
-        def _clear():
-            self._set_note_for_product_row(product_row, "")
-            dlg.accept()
-
-        btn_ok.clicked.connect(_confirm)
-        btn_clear.clicked.connect(_clear)
-        btn_cancel.clicked.connect(dlg.reject)
-        dlg.exec()
-
-    def _set_note_for_product_row(self, product_row: int, note_text: str):
-        """Ghi / cập nhật / xóa dòng ghi chú ngay dưới dòng món."""
-        note_row = product_row + 1
-        has_note_row = (
-            note_row < self.order_table.rowCount()
-            and self.order_table.item(note_row, 1) is not None
-            and self.order_table.item(note_row, 1).data(Qt.UserRole) == "note_row"
-        )
-
-        if not note_text:
-            # Xóa dòng ghi chú nếu có
-            if has_note_row:
-                self.order_table.removeRow(note_row)
-                self._rebuild_action_buttons()
-            return
-
-        if not has_note_row:
-            # Chèn dòng mới
-            self.order_table.insertRow(note_row)
-            marker = QTableWidgetItem("")
-            marker.setData(Qt.UserRole, "note_row")
-            marker.setFlags(Qt.NoItemFlags)
-            self.order_table.setItem(note_row, 1, marker)
-            parent_item = QTableWidgetItem("")
-            parent_item.setData(Qt.UserRole, product_row)
-            parent_item.setFlags(Qt.NoItemFlags)
-            self.order_table.setItem(note_row, 2, parent_item)
-            self.order_table.setRowHeight(note_row, 28)
-
-        # Đặt widget hiển thị (read-only label style)
-        note_lbl = QLabel(f"  📝 {note_text}")
-        note_lbl.setStyleSheet(
-            "background:#E4E6EB; color:#F1C40F;"
-            " font-size:12px; font-style:italic; padding:4px 8px;"
-        )
-        note_lbl.setWordWrap(True)
-        self.order_table.setCellWidget(note_row, 0, note_lbl)
-        self._rebuild_action_buttons()
-
-    def _get_note_for_product_row(self, product_row: int) -> str:
-        """Lấy nội dung ghi chú của dòng món (từ row ghi chú ngay dưới)."""
-        note_row = product_row + 1
-        if note_row >= self.order_table.rowCount():
-            return ""
-        marker = self.order_table.item(note_row, 1)
-        if not marker or marker.data(Qt.UserRole) != "note_row":
-            return ""
-        widget = self.order_table.cellWidget(note_row, 0)
-        if widget and isinstance(widget, QLabel):
-            # Bỏ prefix "  📝 "
-            t = widget.text().strip()
-            return t[2:].strip() if t.startswith("📝") else t
-        if widget and hasattr(widget, 'text'):
-            return widget.text().strip()
-        item = self.order_table.item(note_row, 0)
-        return item.text().strip() if item else ""
 
     # ── Áp dụng khuyến mãi ─────────────────────────────────────
     def _auto_apply_best_km(self):
@@ -1393,9 +1039,11 @@ class POSWindow(QMainWindow):
 
             # ── Nhóm 1: KM Chung (la_doi_diem = 0 hoặc NULL) ─────────────
             km_chung = []
+            km_canhan = []
             for km in kms:
                 if not _base_ok(km): continue
                 if int(getattr(km, "la_doi_diem", 0) or 0): continue
+                is_canhan = (getattr(km, "nhom_khuyen_mai", "") == "CaNhan")
 
                 loai_km = km.loai_km or ""
 
@@ -1425,31 +1073,33 @@ class POSWindow(QMainWindow):
                     du_dk = qty_co >= sl_can_mua
                     tong_tang = sl_tang if du_dk else 0
                     g = 0.0  # MuaXTangY không tính tiền giảm số
-                    km_chung.append({
+                    d_km = {
                         "id": km.id, "ten": km.ten_km or "—",
                         "loai": loai_km, "kieu": "",
                         "gia_tri": 0.0, "tran": None, "dk_min": 0.0,
-                        "diem_can": 0, "loai_nhom": "Chung", "_giam": 0.0,
+                        "diem_can": 0, "loai_nhom": "CaNhan" if is_canhan else "Chung", "_giam": 0.0,
                         # Extra fields cho MuaXTangY
-                        "_mxy": True,
+                        "_mxy": True, "is_km_table": True,
                         "ten_x": ten_x, "ten_y": ten_y,
                         "sl_can_mua": sl_can_mua, "sl_tang": sl_tang,
                         "tong_tang": tong_tang, "du_dk": du_dk,
-                        "msg": (
-                            f"✅Mua {sl_can_mua} {ten_x}  →  Tặng {tong_tang} {ten_y} (miễn phí)"
-                
-                        ),
-                    })
+                        "msg": f"✅Mua {sl_can_mua} {ten_x}  →  Tặng {tong_tang} {ten_y} (miễn phí)"
+                    }
+                    if is_canhan: km_canhan.append(d_km)
+                    else: km_chung.append(d_km)
                 else:
                     g = _tinh_giam(km)
-                    km_chung.append({
+                    d_km = {
                         "id": km.id, "ten": km.ten_km or "—",
                         "loai": loai_km, "kieu": km.kieu_giam or "",
                         "gia_tri": float(km.gia_tri_giam or 0),
                         "tran": float(km.toi_da_giam or 0) or None,
                         "dk_min": float(km.dk_tong_tien_tu or 0),
-                        "diem_can": 0, "loai_nhom": "Chung", "_giam": g,
-                    })
+                        "diem_can": 0, "loai_nhom": "CaNhan" if is_canhan else "Chung", "_giam": g,
+                        "is_km_table": True
+                    }
+                    if is_canhan: km_canhan.append(d_km)
+                    else: km_chung.append(d_km)
             km_chung.sort(key=lambda x: -x["_giam"])
 
             # ── Nhóm 2: KM Đổi Điểm (la_doi_diem = 1) + Voucher cá nhân ──
@@ -1522,7 +1172,12 @@ class POSWindow(QMainWindow):
                         "tran": float(vc.toi_da_giam or 0) or None,
                         "dk_min": float(vc.dieu_kien_toi_thieu or 0),
                         "diem_can": 0, "loai_nhom": "Voucher", "_giam": g,
+                        "is_km_table": False
                     })
+                vouchers.extend(km_canhan)
+                vouchers.sort(key=lambda x: -x["_giam"])
+            else:
+                vouchers.extend(km_canhan)
                 vouchers.sort(key=lambda x: -x["_giam"])
 
         finally:
@@ -1698,6 +1353,12 @@ class POSWindow(QMainWindow):
         tbl_vc, vc_data = None, []
         tbl_dd, dd_data = None, []
 
+        if vouchers:
+            tca.addWidget(QLabel("<b style='color:#3498DB;'>🎟 Voucher:</b>"))
+            tbl_vc, vc_data = _make_km_table(vouchers)
+            tbl_vc.setMaximumHeight(160)
+            tca.addWidget(tbl_vc)
+
         if not kh_id:
             lbl_login = QLabel(
                 "🔒  Vui lòng <b>liên kết số điện thoại khách hàng</b>\n"
@@ -1723,12 +1384,6 @@ class POSWindow(QMainWindow):
                 "padding:8px 12px;font-size:12px;color:#A9DFBF;"
             )
             tca.addWidget(kh_info)
-
-            if vouchers:
-                tca.addWidget(QLabel("<b style='color:#3498DB;'>🎟 Voucher cá nhân:</b>"))
-                tbl_vc, vc_data = _make_km_table(vouchers)
-                tbl_vc.setMaximumHeight(160)
-                tca.addWidget(tbl_vc)
 
             if km_doi_diem:
                 lbl_dd_title = QLabel(
@@ -2352,7 +2007,7 @@ class POSWindow(QMainWindow):
         dialog.setWindowTitle(f"Thanh toán  ·  {order_code}")
         dialog.setFixedSize(440, 600)
         dialog.setStyleSheet("""
-            QDialog { background-color: #FFFFFF; color: #1C1E21; }
+            QDialog { background-color: #F8FAFC; color: #0F172A; }
             QLabel  { border: none; background: transparent; }
             * { font-family: 'Segoe UI', 'Inter', sans-serif; }
         """)
@@ -2364,10 +2019,16 @@ class POSWindow(QMainWindow):
         # ── A. Header ───────────────────────────────────────────────────
         hdr = QFrame(dialog)
         hdr.setStyleSheet(
-            "QFrame { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-            " stop:0 #FFFFFF, stop:1 #FFFFFF);"
-            " border-radius: 14px; border: 1px solid #1E3A5F; }"
+            "QFrame { background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; }"
         )
+        # Drop shadow for header card
+        shadow_hdr = QGraphicsDropShadowEffect(dialog)
+        shadow_hdr.setBlurRadius(10)
+        shadow_hdr.setXOffset(0)
+        shadow_hdr.setYOffset(2)
+        shadow_hdr.setColor(QColor(0, 0, 0, 15))
+        hdr.setGraphicsEffect(shadow_hdr)
+
         hdr_lay = QVBoxLayout(hdr)
         hdr_lay.setContentsMargins(18, 14, 18, 14)
         hdr_lay.setSpacing(4)
@@ -2376,30 +2037,30 @@ class POSWindow(QMainWindow):
         lbl_code = QLabel(f"🧾  {order_code}")
         lbl_code.setAlignment(Qt.AlignCenter)
         lbl_code.setStyleSheet(
-            "font-size: 10px; color: #CCD0D5; letter-spacing: 2.5px;"
+            "font-size: 11px; color: #64748B; letter-spacing: 2px;"
             " font-weight: 600; text-transform: uppercase;"
         )
         hdr_lay.addWidget(lbl_code)
 
-        # Tổng tiền lớn — tăng 15%, màu xanh dịu
+        # Tổng tiền lớn
         lbl_total = QLabel(f"{int(total_to_pay):,} đ")
         lbl_total.setAlignment(Qt.AlignCenter)
         lbl_total.setStyleSheet(
-            "font-size: 36px; font-weight: 700; color: #38BDF8;"
-            " letter-spacing: -1px;"
+            "font-size: 32px; font-weight: 800; color: #2563EB;"
+            " letter-spacing: -0.5px;"
         )
         hdr_lay.addWidget(lbl_total)
 
-        # Chi tiết: Tạm tính · VAT · Giảm giá — icon outline đồng bộ
-        detail_parts = [f"○  {int(grand_total):,} đ", "⊕  VAT 10%"]
+        # Chi tiết: Tạm tính · VAT · Giảm giá
+        detail_parts = [f"Tạm tính: {int(grand_total):,}đ", "VAT: 10%"]
         if self._applied_km and self._km_discount > 0:
             detail_parts.append(
-                f"◎  {self._applied_km['ten']}  −{int(self._km_discount):,} đ"
+                f"KM: -{int(self._km_discount):,}đ"
             )
-        lbl_sub = QLabel("   ·   ".join(detail_parts))
+        lbl_sub = QLabel("  •  ".join(detail_parts))
         lbl_sub.setAlignment(Qt.AlignCenter)
         lbl_sub.setStyleSheet(
-            "font-size: 10px; color: #CCD0D5; letter-spacing: 0.3px;"
+            "font-size: 11px; color: #64748B; font-weight: 500;"
         )
         hdr_lay.addWidget(lbl_sub)
 
@@ -2408,27 +2069,27 @@ class POSWindow(QMainWindow):
         # ── B. Tabs phương thức ─────────────────────────────────────────
         tab_frame = QFrame(dialog)
         tab_frame.setStyleSheet(
-            "QFrame { background:#FFFFFF; border-radius: 10px; border: none; }"
+            "QFrame { background: #F1F5F9; border-radius: 10px; border: 1px solid #E2E8F0; }"
         )
-        tab_frame.setFixedHeight(40)       # giảm 10% so với 44px cũ
+        tab_frame.setFixedHeight(40)
         tab_lay = QHBoxLayout(tab_frame)
-        tab_lay.setContentsMargins(3, 3, 3, 3)
-        tab_lay.setSpacing(3)
+        tab_lay.setContentsMargins(4, 4, 4, 4)
+        tab_lay.setSpacing(4)
 
         _STYLE_TAB_ON = (
-            "QPushButton { background: #1D4ED8; color: #1C1E21; font-weight: 600;"
-            " border-radius: 8px; font-size: 12px; padding: 5px 0; border: none;"
-            " letter-spacing: 0.3px; }"
+            "QPushButton { background: #FFFFFF; color: #2563EB; font-weight: 700;"
+            " border-radius: 6px; font-size: 13px; padding: 6px 0; border: none; }"
         )
         _STYLE_TAB_OFF = (
             "QPushButton { background: transparent; color: #64748B; font-weight: 600;"
-            " border-radius: 8px; font-size: 12px; padding: 5px 0; border: none; }"
-            "QPushButton:hover { background: #FFFFFF; color: #606770; }"
+            " border-radius: 6px; font-size: 13px; padding: 6px 0; border: none; }"
+            "QPushButton:hover { background: rgba(255, 255, 255, 0.4); color: #0F172A; }"
         )
 
-        btn_tab_qr   = QPushButton("⬡  QR / Chuyển khoản")
-        btn_tab_cash = QPushButton("◈  Tiền mặt")
+        btn_tab_qr   = QPushButton("📱  QR / Chuyển khoản")
+        btn_tab_cash = QPushButton("💵  Tiền mặt")
         for b in (btn_tab_qr, btn_tab_cash):
+            b.setCursor(Qt.PointingHandCursor)
             tab_lay.addWidget(b)
         dlg_layout.addWidget(tab_frame)
 
@@ -2443,19 +2104,26 @@ class POSWindow(QMainWindow):
         qr_vlay.setContentsMargins(0, 4, 0, 0)
         qr_vlay.setSpacing(8)
 
-        # Card nền sáng cho QR — thu nhỏ 18%
+        # Card nền sáng cho QR
         qr_card = QFrame()
         qr_card.setStyleSheet(
-            "QFrame { background: #1C1E21; border-radius: 14px;"
-            " border: 2px solid #1C1E21; }"
+            "QFrame { background: #FFFFFF; border-radius: 16px;"
+            " border: 1px solid #CBD5E1; }"
         )
+        shadow_qr = QGraphicsDropShadowEffect(dialog)
+        shadow_qr.setBlurRadius(12)
+        shadow_qr.setXOffset(0)
+        shadow_qr.setYOffset(3)
+        shadow_qr.setColor(QColor(0, 0, 0, 15))
+        qr_card.setGraphicsEffect(shadow_qr)
+
         qr_card_lay = QVBoxLayout(qr_card)
         qr_card_lay.setContentsMargins(10, 10, 10, 10)
 
         qr_label = QLabel("Đang tải mã QR…")
         qr_label.setAlignment(Qt.AlignCenter)
-        qr_label.setStyleSheet("color: #606770; font-size: 12px; background: transparent;")
-        qr_label.setFixedSize(222, 222)   # 270 × 0.82 ≈ 222 (thu nhỏ ~18%)
+        qr_label.setStyleSheet("color: #64748B; font-size: 13px; background: transparent;")
+        qr_label.setFixedSize(222, 222)   # 270 × 0.82 ≈ 222
         qr_card_lay.addWidget(qr_label, 0, Qt.AlignCenter)
         qr_vlay.addWidget(qr_card, 0, Qt.AlignCenter)
 
@@ -2469,10 +2137,10 @@ class POSWindow(QMainWindow):
         except Exception:
             qr_label.setText("(Không tải được mã QR)")
 
-        hint_qr = QLabel("⬡  Dùng App ngân hàng quét mã · Tự động xác nhận khi nhận tiền")
+        hint_qr = QLabel("💡 Quét mã QR bằng ứng dụng Ngân hàng để thanh toán nhanh")
         hint_qr.setAlignment(Qt.AlignCenter)
         hint_qr.setWordWrap(True)
-        hint_qr.setStyleSheet("font-size: 10px; color: #CCD0D5; letter-spacing: 0.2px;")
+        hint_qr.setStyleSheet("font-size: 11px; color: #475569; font-weight: 500;")
         qr_vlay.addWidget(hint_qr)
         qr_vlay.addStretch()
         stack.addWidget(pg_qr)
@@ -2486,22 +2154,29 @@ class POSWindow(QMainWindow):
         lbl_need = QLabel(f"Cần thu:  {int(total_to_pay):,} đ")
         lbl_need.setAlignment(Qt.AlignCenter)
         lbl_need.setStyleSheet(
-            "font-size: 15px; font-weight: 600; color: #38BDF8;"
-            " background: #FFFFFF; border-radius: 8px; padding: 8px 0;"
+            "font-size: 15px; font-weight: 700; color: #1E293B;"
+            " background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0;"
         )
+        shadow_need = QGraphicsDropShadowEffect(dialog)
+        shadow_need.setBlurRadius(8)
+        shadow_need.setXOffset(0)
+        shadow_need.setYOffset(2)
+        shadow_need.setColor(QColor(0, 0, 0, 10))
+        lbl_need.setGraphicsEffect(shadow_need)
         cash_vlay.addWidget(lbl_need)
 
         # Ô nhập tiền khách
         row_cash = QHBoxLayout()
         lbl_given = QLabel("Khách đưa:")
-        lbl_given.setStyleSheet("font-size: 12px; color: #64748B; min-width: 75px;")
+        lbl_given.setStyleSheet("font-size: 13px; color: #475569; font-weight: 600; min-width: 80px;")
         txt_given = QLineEdit()
         txt_given.setPlaceholderText(f"{int(total_to_pay):,}")
         txt_given.setAlignment(Qt.AlignRight)
         txt_given.setStyleSheet(
-            "background: #FFFFFF; border: 1px solid #CCD0D5;"
-            " border-radius: 8px; padding: 8px 12px;"
-            " color: #1C1E21; font-size: 15px; font-weight: 600;"
+            "QLineEdit { background: #FFFFFF; border: 1px solid #CBD5E1;"
+            " border-radius: 10px; padding: 10px 14px;"
+            " color: #0F172A; font-size: 16px; font-weight: 700; }"
+            "QLineEdit:focus { border: 2px solid #3B82F6; }"
         )
         row_cash.addWidget(lbl_given)
         row_cash.addWidget(txt_given)
@@ -2510,16 +2185,23 @@ class POSWindow(QMainWindow):
         # Card tiền thối nổi bật
         change_card = QFrame()
         change_card.setStyleSheet(
-            "QFrame { background: #FFFFFF; border-radius: 10px;"
-            " border: 1px solid #CCD0D5; }"
+            "QFrame { background: #FFFFFF; border-radius: 12px;"
+            " border: 1px solid #E2E8F0; }"
         )
+        shadow_change = QGraphicsDropShadowEffect(dialog)
+        shadow_change.setBlurRadius(8)
+        shadow_change.setXOffset(0)
+        shadow_change.setYOffset(2)
+        shadow_change.setColor(QColor(0, 0, 0, 10))
+        change_card.setGraphicsEffect(shadow_change)
+
         change_card_lay = QHBoxLayout(change_card)
         change_card_lay.setContentsMargins(14, 10, 14, 10)
         lbl_change_title = QLabel("Tiền thối")
-        lbl_change_title.setStyleSheet("font-size: 12px; color: #64748B;")
+        lbl_change_title.setStyleSheet("font-size: 13px; color: #475569; font-weight: 600;")
         lbl_change = QLabel("—")
         lbl_change.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        lbl_change.setStyleSheet("font-size: 24px; font-weight: 700; color: #606770;")
+        lbl_change.setStyleSheet("font-size: 24px; font-weight: 700; color: #64748B;")
         change_card_lay.addWidget(lbl_change_title)
         change_card_lay.addStretch()
         change_card_lay.addWidget(lbl_change)
@@ -2548,11 +2230,13 @@ class POSWindow(QMainWindow):
             label = f"{amt//1000}k" if amt < 1_000_000 else f"{amt/1_000_000:.1f}M"
             bq = QPushButton(label)
             bq.setMinimumHeight(32)
+            bq.setCursor(Qt.PointingHandCursor)
             bq.setStyleSheet(
-                "QPushButton { background: #1D4ED8; color: #BFDBFE;"
-                " border: none; border-radius: 7px;"
+                "QPushButton { background: #EFF6FF; color: #1D4ED8;"
+                " border: 1px solid #BFDBFE; border-radius: 8px;"
                 " font-size: 12px; font-weight: 600; }"
-                "QPushButton:hover { background: #2563EB; color: #1C1E21; }"
+                "QPushButton:hover { background: #3B82F6; color: #FFFFFF; border-color: #3B82F6; }"
+                "QPushButton:pressed { background: #2563EB; color: #FFFFFF; }"
             )
             bq.clicked.connect(lambda checked=False, a=amt: txt_given.setText(f"{a:,}"))
             quick_lay.addWidget(bq, 0, i)
@@ -2564,11 +2248,13 @@ class POSWindow(QMainWindow):
         btn_p50   = QPushButton("+50k")
         for i, b in enumerate([btn_exact, btn_p10, btn_p50]):
             b.setMinimumHeight(32)
+            b.setCursor(Qt.PointingHandCursor)
             b.setStyleSheet(
-                "QPushButton { background: #FFFFFF; color: #606770;"
-                " border: 1px solid #CCD0D5; border-radius: 7px;"
+                "QPushButton { background: #FFFFFF; color: #475569;"
+                " border: 1px solid #CBD5E1; border-radius: 8px;"
                 " font-size: 12px; font-weight: 600; }"
-                "QPushButton:hover { background: #FFFFFF; color: #606770; }"
+                "QPushButton:hover { background: #F1F5F9; color: #0F172A; border-color: #94A3B8; }"
+                "QPushButton:pressed { background: #E2E8F0; }"
             )
             quick_lay.addWidget(b, 1, i)
 
@@ -2593,39 +2279,33 @@ class POSWindow(QMainWindow):
                 if given <= 0:
                     lbl_change.setText("—")
                     lbl_change.setStyleSheet(
-                        "font-size: 24px; font-weight: 700; color: #606770;"
+                        "font-size: 24px; font-weight: 700; color: #64748B;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#FFFFFF; border-radius:10px;"
-                        " border:1px solid #CCD0D5; }"
+                        "QFrame { background: #FFFFFF; border-radius: 12px;"
+                        " border: 1px solid #E2E8F0; }"
                     )
                     btn_confirm.setEnabled(True)
                 elif change < 0:
                     lbl_change.setText(f"⚠ Thiếu  {abs(int(change)):,} đ")
                     lbl_change.setStyleSheet(
-                        "font-size: 16px; font-weight: 700; color: #F87171;"
+                        "font-size: 16px; font-weight: 700; color: #EF4444;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#F0F2F5; border-radius:10px;"
-                        " border:1px solid #7F1D1D; }"
+                        "QFrame { background: #FEF2F2; border-radius: 12px;"
+                        " border: 1px solid #FCA5A5; }"
                     )
                     btn_confirm.setEnabled(False)
-                    btn_confirm.setStyleSheet(
-                        "QPushButton { background:#374151; color:#6B7280;"
-                        " font-size:14px; font-weight:500;"
-                        " border-radius:14px; border:none; }"
-                    )
                 else:
                     lbl_change.setText(f"{int(change):,} đ")
                     lbl_change.setStyleSheet(
-                        "font-size: 24px; font-weight: 700; color: #34D399;"
+                        "font-size: 24px; font-weight: 700; color: #10B981;"
                     )
                     change_card.setStyleSheet(
-                        "QFrame { background:#F0F2F5; border-radius:10px;"
-                        " border:1px solid #065F46; }"
+                        "QFrame { background: #ECFDF5; border-radius: 12px;"
+                        " border: 1px solid #A7F3D0; }"
                     )
                     btn_confirm.setEnabled(True)
-                    _reset_confirm_style()
             except Exception:
                 lbl_change.setText("—")
 
@@ -2636,17 +2316,25 @@ class POSWindow(QMainWindow):
         # ── D. Nút xác nhận ─────────────────────────────────────────────
         btn_confirm = QPushButton("⬡  ĐÃ NHẬN TIỀN  —  CHỐT ĐƠN")
         btn_confirm.setMinimumHeight(48)
+        btn_confirm.setCursor(Qt.PointingHandCursor)
+
+        shadow_confirm = QGraphicsDropShadowEffect(dialog)
+        shadow_confirm.setBlurRadius(8)
+        shadow_confirm.setXOffset(0)
+        shadow_confirm.setYOffset(3)
+        shadow_confirm.setColor(QColor(0, 0, 0, 20))
+        btn_confirm.setGraphicsEffect(shadow_confirm)
 
         def _reset_confirm_style():
             btn_confirm.setStyleSheet(
-                "QPushButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-                " stop:0 #059669, stop:1 #0D9488);"
-                " color: #1C1E21; font-weight: 500; font-size: 14px;"
-                " border-radius: 14px; border: none; letter-spacing: 0.5px; }"
-                "QPushButton:hover { background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-                " stop:0 #047857, stop:1 #0F766E); }"
-                "QPushButton:pressed { background: #065F46; }"
-                "QPushButton:disabled { background: #374151; color: #6B7280; }"
+                "QPushButton { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
+                "stop:0 #10B981, stop:1 #059669); "
+                "color: #FFFFFF; font-weight: 700; font-size: 14px; "
+                "border-radius: 12px; border: none; letter-spacing: 0.5px; }"
+                "QPushButton:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
+                "stop:0 #059669, stop:1 #047857); }"
+                "QPushButton:pressed { background: #047857; }"
+                "QPushButton:disabled { background: #E2E8F0; color: #94A3B8; }"
             )
 
         _reset_confirm_style()
@@ -2660,11 +2348,13 @@ class POSWindow(QMainWindow):
         dlg_layout.addWidget(btn_confirm)
 
         btn_cancel = QPushButton("Hủy")
-        btn_cancel.setMinimumHeight(32)
+        btn_cancel.setMinimumHeight(38)
+        btn_cancel.setCursor(Qt.PointingHandCursor)
         btn_cancel.setStyleSheet(
-            "QPushButton { background: transparent; color: #CCD0D5;"
-            " font-size: 12px; border: 1px solid #FFFFFF; border-radius: 10px; }"
-            "QPushButton:hover { background: #FFFFFF; color: #606770; }"
+            "QPushButton { background: #F1F5F9; color: #475569;"
+            " font-size: 13px; font-weight: 600; border: none; border-radius: 12px; }"
+            "QPushButton:hover { background: #E2E8F0; color: #0F172A; }"
+            "QPushButton:pressed { background: #CBD5E1; }"
         )
         btn_cancel.clicked.connect(dialog.reject)
         dlg_layout.addWidget(btn_cancel)

@@ -33,55 +33,66 @@ from database.models import KhuyenMai, SanPham, NhatKyKhuyenMai
 
 
 STYLE = """
-QDialog, QWidget  { background-color: #FFFFFF; color: #1C1E21; }
+QDialog  { background-color: #FFFFFF; color: #1F2937; } QLabel { color: #1F2937; background: transparent; }
 QTabWidget::pane  { border: none; background: #FFFFFF; }
-QTabBar::tab      { background:#F0F2F5; color:#606770; padding:10px 22px;
+QTabBar::tab      { background:#F1F5F9; color:#4B5563; padding:10px 22px;
     border-radius:6px 6px 0 0; font-weight:bold; font-size:13px; }
 QTabBar::tab:selected { background:#E67E22; color:white; }
-QTabBar::tab:hover    { background:#CCD0D5; color: #1C1E21; }
+QTabBar::tab:hover    { background:#E2E8F0; color: #1F2937; }
 QTableWidget {
-    background:#FFFFFF; border:none; border-radius:8px;
-    gridline-color:transparent; color:#1C1E21; font-size:13px;
-    alternate-background-color:#F0F2F5; }
+    background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px;
+    gridline-color:#E2E8F0; color:#1F2937; font-size:13px;
+    alternate-background-color:#F8FAFC; }
 QTableWidget::item {
-    background:#FFFFFF; color:#1C1E21;
-    padding:8px 10px; border-bottom:1px solid #F0F2F5; }
+    background:#FFFFFF; color:#1F2937;
+    padding:8px 10px; border-bottom:1px solid #E2E8F0; }
 QTableWidget::item:alternate {
-    background:#F0F2F5; color:#1C1E21; }
+    background:#F8FAFC; color:#1F2937; }
 QTableWidget::item:selected {
     background:#8E44AD; color:white; }
 QTableWidget::item:selected:alternate {
     background:#8E44AD; color:white; }
-QHeaderView::section { background:#13132A; color:#606770;
-    padding:9px 10px; border:none; border-bottom:2px solid #F0F2F5;
+QHeaderView::section { background:#F8FAFC; color:#4B5563;
+    padding:9px 10px; border:none; border-bottom:1px solid #E2E8F0;
     font-weight:bold; font-size:12px; }
 QLineEdit, QDateEdit, QComboBox, QSpinBox, QDoubleSpinBox, QTimeEdit {
-    background:#F0F2F5; border:1px solid #CCD0D5; border-radius:6px;
-    padding:6px 10px; color:#1C1E21; font-size:13px; }
-QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus { border-color:#E67E22; }
-QTextEdit { background:#F0F2F5; border:1px solid #CCD0D5; border-radius:6px;
-    padding:6px 10px; color:#1C1E21; font-size:13px; }
-QComboBox::drop-down { border:none; }
-QComboBox QAbstractItemView { background:#F0F2F5; color:#1C1E21;
-    selection-background-color:#E67E22; }
+    background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px;
+    padding:6px 10px; color:#1F2937; font-size:13px; }
+QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus { border-color:#E67E22; background-color:#FFFFFF; }
+QLineEdit:disabled, QDateEdit:disabled, QComboBox:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled, QTimeEdit:disabled {
+    background-color:#E2E8F0; color:#94A3B8; border-color:#CBD5E1; }
+QTextEdit { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px;
+    padding:6px 10px; color:#1F2937; font-size:13px; }
+QTextEdit:focus { border-color:#E67E22; background-color:#FFFFFF; }
+QTextEdit:disabled { background-color:#E2E8F0; color:#94A3B8; border-color:#CBD5E1; }
+QComboBox::drop-down { border: none; background: transparent; width: 20px; }
+QComboBox QAbstractItemView { background:#FFFFFF; color:#1F2937;
+    selection-background-color:#E67E22; selection-color:white; }
 QScrollBar:vertical { background:#FFFFFF; width:7px; border-radius:4px; }
-QScrollBar::handle:vertical { background:#CCD0D5; border-radius:4px; }
-QCheckBox { color:#1C1E21; font-size:13px; }
+QScrollBar::handle:vertical { background:#CBD5E1; border-radius:4px; }
+QCheckBox { color:#1F2937; font-size:13px; }
+QCheckBox:disabled { color:#94A3B8; }
 QCheckBox::indicator { width:16px; height:16px; border-radius:4px;
-    border:2px solid #CCD0D5; background:#F0F2F5; }
+    border:2px solid #CBD5E1; background:#F8FAFC; }
 QCheckBox::indicator:checked { background:#8E44AD; border-color:#8E44AD; }
 QCheckBox::indicator:hover   { border-color:#8E44AD; }
-QSplitter::handle { background:#CCD0D5; width:2px; }
+QCheckBox::indicator:disabled { background:#E2E8F0; border-color:#CBD5E1; }
+QSplitter::handle { background:#CBD5E1; width:2px; }
 """
 
 
 def _btn(text, color, h=36):
     b = QPushButton(text)
     b.setMinimumHeight(h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {color}CC;"
     b.setStyleSheet(
-        f"background:{color};color: #1C1E21;font-weight:bold;"
-        f"border-radius:6px;font-size:13px;padding:0 14px;"
-        f"border:none;"
+        f"QPushButton{{background:{color};color:{text_color};font-weight:bold;"
+        f"border-radius:6px;font-size:13px;padding:0 14px;{border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
     )
     return b
 
@@ -274,14 +285,12 @@ class KhuyenMaiForm(QDialog):
         self._load_categories()
 
         self.cb_kieu = QComboBox()
-        self.cb_kieu.addItems(["PhanTram"]) # Chỉ cho phép giảm phần trăm
-        self.cb_kieu.setEnabled(False)      # Khóa cứng không cho sửa
+        self.cb_kieu.addItems(["PhanTram", "TienMat"])
 
         from PySide6.QtGui import QIntValidator
         _int_val = QIntValidator(0, 100_000_000)
 
-        self.sp_gt = QLineEdit("100")       # Mặc định 100%
-        self.sp_gt.setEnabled(False)        # Khóa cứng không cho sửa
+        self.sp_gt = QLineEdit("100")
         self.sp_gt.setPlaceholderText("100")
 
         self.sp_tran = QLineEdit()
@@ -345,28 +354,22 @@ class KhuyenMaiForm(QDialog):
         f4 = QFormLayout(); f4.setSpacing(8)
 
         # Ngày bắt đầu / kết thúc
-        def _hrow(*widgets):
-            c = QWidget(); c.setStyleSheet("background:transparent;")
-            h = QHBoxLayout(c); h.setContentsMargins(0, 0, 0, 0); h.setSpacing(8)
-            for w in widgets: h.addWidget(w)
-            h.addStretch(); return c
-
-        self.chk_bd = QCheckBox("Có ngày bắt đầu")
+        self.chk_bd = QCheckBox("Ngày bắt đầu")
         self.de_bd  = QDateEdit(QDate.currentDate())
         self.de_bd.setCalendarPopup(True); self.de_bd.setDisplayFormat("dd/MM/yyyy")
         self.de_bd.setEnabled(False); self.de_bd.setFixedWidth(130)
 
-        self.chk_kt = QCheckBox("Có ngày kết thúc")
+        self.chk_kt = QCheckBox("Ngày kết thúc")
         self.de_kt  = QDateEdit(QDate.currentDate())
         self.de_kt.setCalendarPopup(True); self.de_kt.setDisplayFormat("dd/MM/yyyy")
         self.de_kt.setEnabled(False); self.de_kt.setFixedWidth(130)
 
-        self.chk_luot = QCheckBox("Giới hạn lượt dùng")
+        self.chk_luot = QCheckBox("Lượt dùng")
         self.sp_luot  = QSpinBox(); self.sp_luot.setRange(1, 100000); self.sp_luot.setValue(100)
         self.sp_luot.setEnabled(False); self.sp_luot.setFixedWidth(100)
 
         # Happy Hour
-        self.chk_gio = QCheckBox("Giới hạn khung giờ (Happy Hour)")
+        self.chk_gio = QCheckBox("Khung giờ (Happy Hour)")
         self.te_tu  = QTimeEdit(QTime(8, 0))
         self.te_tu.setDisplayFormat("HH:mm"); self.te_tu.setEnabled(False)
         self.te_tu.setFixedWidth(90)
@@ -430,10 +433,17 @@ class KhuyenMaiForm(QDialog):
         # Checkbox ẩn — giữ để tương thích _on_nhom_changed cũ
         self.chk_doi_diem = QCheckBox(); self.chk_doi_diem.setVisible(False)
 
-        f4.addRow(_fl("Ngày bắt đầu:"),  _hrow(self.chk_bd,   self.de_bd))
-        f4.addRow(_fl("Ngày kết thúc:"), _hrow(self.chk_kt,   self.de_kt))
-        f4.addRow(_fl("Lượt dùng:"),     _hrow(self.chk_luot, self.sp_luot))
-        f4.addRow(_fl("Khung giờ:"),     _hrow(self.chk_gio, self.te_tu, self.lbl_den, self.te_den))
+        f4.addRow(self.chk_bd, self.de_bd)
+        f4.addRow(self.chk_kt, self.de_kt)
+        f4.addRow(self.chk_luot, self.sp_luot)
+        
+        c_gio = QWidget(); c_gio.setStyleSheet("background:transparent;")
+        h_gio = QHBoxLayout(c_gio); h_gio.setContentsMargins(0, 0, 0, 0); h_gio.setSpacing(8)
+        h_gio.addWidget(self.te_tu)
+        h_gio.addWidget(self.lbl_den)
+        h_gio.addWidget(self.te_den)
+        h_gio.addStretch()
+        f4.addRow(self.chk_gio, c_gio)
 
         v4.addLayout(f4)
         fl.addWidget(sec4)
@@ -585,6 +595,11 @@ class KhuyenMaiForm(QDialog):
         is_pt = (kieu == "PhanTram")
         self.lbl_tran.setVisible(is_pt)
         self.sp_tran.setVisible(is_pt)
+        from PySide6.QtGui import QIntValidator
+        if is_pt:
+            self.sp_gt.setValidator(QIntValidator(0, 100))
+        else:
+            self.sp_gt.setValidator(QIntValidator(0, 100_000_000))
         self._update_preview()
 
     def _refresh_nhom_badge(self):

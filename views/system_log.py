@@ -38,25 +38,27 @@ from database.db_config import ghi_nhat_ky_dang_nhap, ghi_nhat_ky_hoat_dong  # n
 
 # ── Style ────────────────────────────────────────────────────────────────────
 STYLE = """
-QDialog,QWidget{background-color: #FFFFFF;color: #1C1E21;}
-QTabWidget::pane{border:none;}
-QTabBar::tab{background:#F0F2F5;color:#606770;padding:10px 20px;
-    border-radius:6px 6px 0 0;font-weight:bold;font-size:13px;}
-QTabBar::tab:selected{background:#3498DB;color:white;}
-QTabBar::tab:hover{background:#CCD0D5;color: #1C1E21;}
-QTableWidget{background:#F0F2F5;border:none;border-radius:8px;
-    gridline-color:#CCD0D5;color: #1C1E21;font-size:12px;}
-QTableWidget::item{padding:7px;border-bottom:1px solid #CCD0D5;}
-QTableWidget::item:selected{background:#3498DB;}
-QHeaderView::section{background:#E4E6EB;color:#606770;
-    padding:9px;border:none;font-weight:bold;font-size:12px;}
-QComboBox,QDateEdit,QLineEdit{background:#F0F2F5;border:1px solid #CCD0D5;
-    border-radius:6px;padding:5px 8px;color: #1C1E21;font-size:12px;}
-QComboBox::drop-down{border:none;}
-QComboBox QAbstractItemView{background:#F0F2F5;color: #1C1E21;
-    selection-background-color:#3498DB;}
-QScrollBar:vertical{background:#E4E6EB;width:7px;border-radius:4px;}
-QScrollBar::handle:vertical{background:#CCD0D5;border-radius:4px;}
+QDialog{background-color: #F3F4F6;color: #1F2937;} QLabel{color: #1F2937;background:transparent;}
+QTabWidget::pane{border:none;background:#F3F4F6;}
+QTabBar::tab{background:#FFFFFF;color:#4B5563;padding:10px 20px;
+    border-radius:6px 6px 0 0;font-weight:bold;font-size:13px;border:1px solid #CBD5E1;border-bottom:none;}
+QTabBar::tab:selected{background:#3B82F6;color:white;border-color:#3B82F6;}
+QTabBar::tab:hover{background:#F1F5F9;color: #1F2937;}
+QTableWidget{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:8px;
+    gridline-color:#F1F5F9;color: #1F2937;font-size:12px;}
+QTableWidget::item{padding:8px 6px;border-bottom:1px solid #F1F5F9;}
+QTableWidget::item:selected{background:#3B82F6;color:white;}
+QHeaderView::section{background:#F1F5F9;color:#475569;
+    padding:8px 6px;border:none;border-bottom:2px solid #CBD5E1;border-right:1px solid #E2E8F0;font-weight:bold;font-size:12px;}
+QComboBox,QDateEdit,QLineEdit{background:#FFFFFF;border:1px solid #CBD5E1;
+    border-radius:6px;padding:5px 8px;color: #1F2937;font-size:12px;}
+QComboBox:focus,QDateEdit:focus,QLineEdit:focus{border-color:#3B82F6;background-color:#FFFFFF;}
+QComboBox:disabled,QDateEdit:disabled,QLineEdit:disabled{background-color:#E2E8F0;color:#94A3B8;border-color:#CBD5E1;}
+QComboBox::drop-down { border: none; background: transparent; width: 20px; }
+QComboBox QAbstractItemView{background:#FFFFFF;color: #1F2937;
+    selection-background-color:#3B82F6;selection-color:white;}
+QScrollBar:vertical{background:#FFFFFF;width:7px;border-radius:4px;}
+QScrollBar::handle:vertical{background:#CBD5E1;border-radius:4px;}
 """
 
 # Màu kết quả
@@ -70,9 +72,15 @@ KQ_COLOR = {
 
 def _btn(t, c="#2980B9", h=32):
     b = QPushButton(t); b.setMinimumHeight(h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = c.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {c}CC;"
     b.setStyleSheet(
-        f"background:{c};color: #1C1E21;font-weight:bold;"
-        f"border-radius:6px;font-size:12px;padding:0 10px;"
+        f"QPushButton{{background:{c};color:{text_color};font-weight:bold;"
+        f"border-radius:6px;font-size:12px;padding:0 10px;{border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
     )
     return b
 
@@ -573,11 +581,9 @@ class SystemLogDialog(QDialog):
         self.tabs = QTabWidget()
         self.t0 = LoginLogTab()
         self.t1 = StaffLogTab()
-        self.t2 = PromoLogTab()
 
-        self.tabs.addTab(self.t0, "🔐  Nhật Ký Đăng Nhập")   # ← Thay "Hệ thống"
+        self.tabs.addTab(self.t0, "🔐  Nhật Ký Đăng Nhập")
         self.tabs.addTab(self.t1, "👤  Nhật Ký Hoạt Động")
-        self.tabs.addTab(self.t2, "🏷️  Nhật Ký Khuyến Mãi")
         root.addWidget(self.tabs)
 
         self.tabs.currentChanged.connect(self._on_tab)
@@ -592,4 +598,3 @@ class SystemLogDialog(QDialog):
     def _on_tab(self, idx: int):
         if idx == 0: self.t0.load()
         elif idx == 1: self.t1._reload_all()
-        elif idx == 2: self.t2.load()

@@ -34,34 +34,35 @@ from database.models import HoaDon, ChiTietHoaDon, NhanVien, KhuyenMai, PhienLam
 PAGE_SIZE = 30   # số hóa đơn mỗi trang
 
 # ── Bảng màu ─────────────────────────────────────────────────────
-C_BG      = "#FFFFFF"
+C_BG      = "#F3F4F6"
 C_PANEL   = "#FFFFFF"
-C_CARD    = "#F0F2F5"
-C_BORDER  = "#F0F2F5"
-C_ACCENT  = "#3498DB"
-C_GREEN   = "#2ECC71"
-C_ORANGE  = "#E67E22"
-C_RED     = "#E74C3C"
-C_YELLOW  = "#F1C40F"
-C_TEXT    = "#1C1E21"
-C_MUTED   = "#606770"
+C_CARD    = "#F8FAFC"
+C_BORDER  = "#CBD5E1"
+C_ACCENT  = "#3B82F6"
+C_GREEN   = "#10B981"
+C_ORANGE  = "#F97316"
+C_RED     = "#EF4444"
+C_YELLOW  = "#FBBF24"
+C_TEXT    = "#1F2937"
+C_MUTED   = "#475569"
 
 STYLE = f"""
-QDialog, QWidget   {{ background:{C_BG}; color:{C_TEXT}; }}
-QFrame             {{ background:{C_PANEL}; border-radius:10px; }}
-QTableWidget       {{ background:{C_CARD}; border:none; border-radius:8px;
+QDialog   {{ background:{C_BG}; color:{C_TEXT}; }} QLabel {{ color:{C_TEXT}; background:transparent; }}
+QFrame             {{ background:{C_PANEL}; border-radius:10px; border:1px solid {C_BORDER}; }}
+QTableWidget       {{ background:#FFFFFF; border:1px solid {C_BORDER}; border-radius:8px;
                       gridline-color:{C_BORDER}; color:{C_TEXT}; font-size:13px; }}
 QTableWidget::item {{ padding:7px 6px; border-bottom:1px solid {C_BORDER}; }}
-QTableWidget::item:selected {{ background:{C_ACCENT}; color: #1C1E21; }}
-QHeaderView::section {{ background:{C_PANEL}; color:{C_MUTED}; padding:9px 6px;
-    border:none; font-weight:bold; font-size:12px; border-bottom:2px solid {C_BORDER}; }}
+QTableWidget::item:selected {{ background:{C_ACCENT}; color: white; }}
+QHeaderView::section {{ background:#F1F5F9; color:{C_MUTED}; padding:8px 6px;
+    border:none; font-weight:bold; font-size:12px;
+    border-bottom:2px solid {C_BORDER}; border-right:1px solid #E2E8F0; }}
 QLineEdit, QDateEdit, QComboBox {{
     background:{C_CARD}; border:1px solid {C_BORDER}; border-radius:6px;
     padding:7px 10px; color:{C_TEXT}; font-size:13px; }}
-QLineEdit:focus, QDateEdit:focus {{ border-color:{C_ACCENT}; }}
-QComboBox::drop-down {{ border:none; width:20px; }}
-QComboBox QAbstractItemView {{ background:{C_CARD}; color:{C_TEXT};
-    selection-background-color:{C_ACCENT}; border:1px solid {C_BORDER}; }}
+QLineEdit:focus, QDateEdit:focus {{ border-color:{C_ACCENT}; background-color:#FFFFFF; }}
+QComboBox::drop-down {{ border: none; background: transparent; width: 20px; }}
+QComboBox QAbstractItemView {{ background:#FFFFFF; color:{C_TEXT};
+    selection-background-color:{C_ACCENT}; selection-color:white; border:1px solid {C_BORDER}; }}
 QScrollBar:vertical {{ background:{C_BG}; width:6px; border-radius:3px; }}
 QScrollBar::handle:vertical {{ background:{C_BORDER}; border-radius:3px; }}
 """
@@ -83,11 +84,16 @@ def _btn(text, color="#34495E", h=34, w=None):
     b = QPushButton(text)
     b.setMinimumHeight(h)
     if w: b.setFixedWidth(w)
-    b.setStyleSheet(
-        f"background:{color};color: #1C1E21;font-weight:bold;"
-        f"border-radius:6px;font-size:13px;padding:0 12px;border:none;"
-    )
     b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {color}CC;"
+    b.setStyleSheet(
+        f"QPushButton{{background:{color};color:{text_color};font-weight:bold;"
+        f"border-radius:6px;font-size:13px;padding:0 12px;{border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
+    )
     return b
 
 
@@ -604,10 +610,10 @@ class _DetailPanel(QFrame):
         self.tbl_mon.setSelectionMode(QAbstractItemView.NoSelection)
         self.tbl_mon.setMaximumHeight(260)
         self.tbl_mon.setStyleSheet(
-            f"QTableWidget{{background:{C_CARD};border-radius:6px;"
-            f"font-size:12px;gridline-color:{C_BORDER};}}"
-            f"QHeaderView::section{{background:{C_PANEL};color:{C_MUTED};"
-            f"font-size:11px;padding:4px;border:none;}}"
+            f"QTableWidget{{background:#FFFFFF;border-radius:6px;"
+            f"font-size:12px;gridline-color:{C_BORDER};border:1px solid {C_BORDER};}}"
+            f"QHeaderView::section{{background:{C_CARD};color:{C_MUTED};"
+            f"font-size:11px;padding:4px;border:none;border-bottom:1px solid {C_BORDER};}}"
         )
         root.addWidget(self.tbl_mon)
 

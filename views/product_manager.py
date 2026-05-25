@@ -63,14 +63,14 @@ class ProductForm(QDialog):
         self.setWindowTitle("Thêm Món Mới" if not product else f"Sửa: {product.ten_sp}")
         self.resize(460, 400)
         self.setStyleSheet("""
-            QDialog { background-color: #FFFFFF; color: #1C1E21; }
-            QLabel  { color: #1C1E21; font-weight: bold; }
+            QDialog { background-color: #FFFFFF; color: #1F2937; }
+            QLabel  { color: #1F2937; font-weight: bold; }
             QLineEdit, QComboBox {
-                background-color: #F0F2F5; border: 1px solid #CCD0D5;
-                border-radius: 6px; padding: 8px; color: #1C1E21;
+                background-color: #F8FAFC; border: 1px solid #E2E8F0;
+                border-radius: 6px; padding: 8px; color: #1F2937;
             }
             QLineEdit:focus, QComboBox:focus {
-                border: 1px solid #3498DB; background-color: #D8DADF;
+                border: 1px solid #3498DB; background-color: #FFFFFF;
             }
         """)
 
@@ -86,6 +86,16 @@ class ProductForm(QDialog):
         self.cb_danhmuc = QComboBox()
         self.cb_danhmuc.setEditable(False)
         self._load_categories()
+        
+        btn_add_dm = QPushButton("➕")
+        btn_add_dm.setToolTip("Thêm danh mục mới")
+        btn_add_dm.setStyleSheet("background-color: #2ECC71; color: white; font-weight: bold; border-radius: 6px; padding: 6px; font-size: 14px;")
+        btn_add_dm.setFixedWidth(40)
+        btn_add_dm.clicked.connect(self._add_new_category)
+        
+        dm_layout = QHBoxLayout()
+        dm_layout.addWidget(self.cb_danhmuc, 1)
+        dm_layout.addWidget(btn_add_dm)
 
         self.cb_trangthai = QComboBox()
         self.cb_trangthai.addItems(["Đang bán", "Ngừng bán", "Hết hàng"])
@@ -93,7 +103,7 @@ class ProductForm(QDialog):
         form.addRow("Tên món *:", self.txt_name)
         form.addRow("Giá bán (đ) *:", self.txt_price)
         form.addRow("Giá vốn (đ):", self.txt_cost)
-        form.addRow("Danh mục:", self.cb_danhmuc)
+        form.addRow("Danh mục:", dm_layout)
         form.addRow("Trạng thái:", self.cb_trangthai)
         layout.addLayout(form)
 
@@ -175,6 +185,26 @@ class ProductForm(QDialog):
             self.cb_danhmuc.addItem("Khác")
         finally:
             s.close()
+
+    def _add_new_category(self):
+        from PySide6.QtWidgets import QInputDialog
+        new_cat, ok = QInputDialog.getText(self, "Thêm danh mục", "Nhập tên danh mục mới:")
+        if ok and new_cat.strip():
+            new_cat = new_cat.strip()
+            session = get_session()
+            try:
+                exists = session.query(DanhMucSanPham).filter_by(ten_danh_muc=new_cat).first()
+                if not exists:
+                    dm = DanhMucSanPham(ten_danh_muc=new_cat)
+                    session.add(dm)
+                    session.commit()
+                self.cb_danhmuc.clear()
+                self._load_categories()
+                self.cb_danhmuc.setCurrentText(new_cat)
+            except Exception as e:
+                QMessageBox.warning(self, "Lỗi", str(e))
+            finally:
+                session.close()
 
     # ── Helpers ảnh ────────────────────────────────────────────────
     def _load_preview(self, path: str):
@@ -271,38 +301,54 @@ class ProductManager(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Quản Lý Danh Mục Món")
         self.resize(750, 520)
-        self.setStyleSheet("background-color: #FFFFFF; color: #1C1E21;")
+        self.setStyleSheet("QDialog { background-color: #F3F4F6; color: #1F2937; }")
 
         layout = QVBoxLayout(self)
 
         # Toolbar
         toolbar = QHBoxLayout()
         btn_add = QPushButton("➕ Thêm Món Mới")
-        btn_add.setStyleSheet(
-            "background-color: #2980B9; color: white; font-weight: bold;"
-            " padding: 8px 16px; border-radius: 6px;"
-        )
+        btn_add.setCursor(Qt.PointingHandCursor)
+        btn_add.setStyleSheet("""
+            QPushButton {
+                background-color: #3B82F6; color: white; font-weight: bold;
+                padding: 8px 16px; border-radius: 6px; border: none;
+            }
+            QPushButton:hover { background-color: #2563EB; }
+        """)
         btn_add.clicked.connect(self.add_product)
 
         btn_edit = QPushButton("✏️ Sửa Món")
-        btn_edit.setStyleSheet(
-            "background-color: #E67E22; color: white; font-weight: bold;"
-            " padding: 8px 16px; border-radius: 6px;"
-        )
+        btn_edit.setCursor(Qt.PointingHandCursor)
+        btn_edit.setStyleSheet("""
+            QPushButton {
+                background-color: #F97316; color: white; font-weight: bold;
+                padding: 8px 16px; border-radius: 6px; border: none;
+            }
+            QPushButton:hover { background-color: #EA580C; }
+        """)
         btn_edit.clicked.connect(self.edit_product)
 
         btn_delete = QPushButton("🗑️ Ngừng Bán")
-        btn_delete.setStyleSheet(
-            "background-color: #C0392B; color: white; font-weight: bold;"
-            " padding: 8px 16px; border-radius: 6px;"
-        )
+        btn_delete.setCursor(Qt.PointingHandCursor)
+        btn_delete.setStyleSheet("""
+            QPushButton {
+                background-color: #EF4444; color: white; font-weight: bold;
+                padding: 8px 16px; border-radius: 6px; border: none;
+            }
+            QPushButton:hover { background-color: #DC2626; }
+        """)
         btn_delete.clicked.connect(self.toggle_status)
 
         btn_xoa = QPushButton("❌ Xóa Món")
-        btn_xoa.setStyleSheet(
-            "background-color: #7F0000; color: #1C1E21; font-weight: bold;"
-            " padding: 8px 16px; border-radius: 6px;"
-        )
+        btn_xoa.setCursor(Qt.PointingHandCursor)
+        btn_xoa.setStyleSheet("""
+            QPushButton {
+                background-color: #991B1B; color: white; font-weight: bold;
+                padding: 8px 16px; border-radius: 6px; border: none;
+            }
+            QPushButton:hover { background-color: #7F1D1D; }
+        """)
         btn_xoa.clicked.connect(self.delete_product)
 
         toolbar.addWidget(btn_add)
@@ -324,14 +370,15 @@ class ProductManager(QDialog):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setStyleSheet("""
             QTableWidget {
-                background-color: #F0F2F5; border: none;
-                border-radius: 10px; color: #1C1E21; font-size: 13px;
+                background-color: #FFFFFF; border: 1px solid #CBD5E1; gridline-color: #F1F5F9;
+                color: #1F2937; font-size: 13px; border-radius: 8px;
             }
-            QTableWidget::item { padding: 6px; border-bottom: 1px solid #CCD0D5; }
-            QTableWidget::item:selected { background-color: #2980B9; }
+            QTableWidget::item { padding: 8px 6px; border-bottom: 1px solid #F1F5F9; }
+            QTableWidget::item:selected { background-color: #3B82F6; color: white; }
             QHeaderView::section {
-                background-color: #E4E6EB; color: #606770;
-                padding: 8px; border: none; font-weight: bold;
+                background-color: #F1F5F9; color: #475569; padding: 8px 6px;
+                border: none; border-bottom: 2px solid #CBD5E1; border-right: 1px solid #E2E8F0;
+                font-weight: bold; font-size: 12px;
             }
         """)
         self.table.itemDoubleClicked.connect(self.edit_product)

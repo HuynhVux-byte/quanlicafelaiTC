@@ -30,26 +30,26 @@ DEFAULT_CATEGORIES = [
 ]
 
 STYLE = """
-QDialog, QWidget { background-color: #FFFFFF; color: #1C1E21; }
+QDialog { background-color: #FFFFFF; color: #1F2937; } QLabel { color: #1F2937; background: transparent; }
 QTableWidget {
-    background: #F0F2F5; border: none; border-radius: 8px;
-    gridline-color: #CCD0D5; color: #1C1E21; font-size: 13px;
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px;
+    gridline-color: #E2E8F0; color: #1F2937; font-size: 13px;
 }
-QTableWidget::item { padding: 7px; border-bottom: 1px solid #CCD0D5; }
-QTableWidget::item:selected { background: #3498DB; }
+QTableWidget::item { padding: 7px; border-bottom: 1px solid #E2E8F0; }
+QTableWidget::item:selected { background: #3498DB; color: white; }
 QHeaderView::section {
-    background: #E4E6EB; color: #606770;
-    padding: 9px; border: none; font-weight: bold;
+    background: #F8FAFC; color: #4B5563;
+    padding: 9px; border: none; border-bottom: 1px solid #E2E8F0; font-weight: bold;
 }
 QLineEdit {
-    background: #F0F2F5; border: 1px solid #CCD0D5;
-    border-radius: 6px; padding: 6px 10px; color: #1C1E21; font-size: 13px;
+    background: #F8FAFC; border: 1px solid #E2E8F0;
+    border-radius: 6px; padding: 6px 10px; color: #1F2937; font-size: 13px;
 }
-QLineEdit:focus { border-color: #3498DB; }
-QScrollBar:vertical { background: #E4E6EB; width: 7px; border-radius: 4px; }
-QScrollBar::handle:vertical { background: #CCD0D5; border-radius: 4px; }
+QLineEdit:focus { border-color: #3498DB; background-color: #FFFFFF; }
+QScrollBar:vertical { background: #F1F5F9; width: 7px; border-radius: 4px; }
+QScrollBar::handle:vertical { background: #CBD5E1; border-radius: 4px; }
 QFrame#card {
-    background: #F0F2F5; border: 1px solid #CCD0D5; border-radius: 10px;
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;
 }
 """
 
@@ -57,9 +57,15 @@ QFrame#card {
 def _btn(text: str, color: str, min_h: int = 36) -> QPushButton:
     b = QPushButton(text)
     b.setMinimumHeight(min_h)
+    b.setCursor(Qt.PointingHandCursor)
+    is_light = color.lower() in ("#ccd0d5", "#f0f2f5", "#f3f4f6", "#ffffff", "#f8fafc", "#e2e8f0", "#cbd5e1")
+    text_color = "#1F2937" if is_light else "white"
+    border_style = "border: 1px solid #CBD5E1;" if is_light else "border: none;"
+    hover_bg = f"background: #F1F5F9;" if is_light else f"background: {color}CC;"
     b.setStyleSheet(
-        f"background:{color}; color: #1C1E21; font-weight:bold;"
-        f" border-radius:6px; font-size:12px; padding:0 12px;"
+        f"QPushButton{{background:{color};color:{text_color};font-weight:bold;"
+        f"border-radius:6px;font-size:12px;padding:0 12px;{border_style}}}"
+        f"QPushButton:hover{{{hover_bg}}}"
     )
     return b
 
@@ -177,7 +183,8 @@ class CategoryManagerDialog(QDialog):
 
         # ── Panel trái ───────────────────────────────────────────
         left = QWidget()
-        left.setStyleSheet("background:#E4E6EB; border-radius:10px;")
+        left.setObjectName("left_panel")
+        left.setStyleSheet("#left_panel { background:#FFFFFF; border: 1px solid #E2E8F0; border-radius:10px; }")
         lv = QVBoxLayout(left)
         lv.setContentsMargins(10, 10, 10, 10)
         lv.setSpacing(8)
@@ -221,7 +228,8 @@ class CategoryManagerDialog(QDialog):
 
         # ── Panel phải ───────────────────────────────────────────
         right = QWidget()
-        right.setStyleSheet("background:#E4E6EB; border-radius:10px;")
+        right.setObjectName("right_panel")
+        right.setStyleSheet("#right_panel { background:#FFFFFF; border: 1px solid #E2E8F0; border-radius:10px; }")
         rv = QVBoxLayout(right)
         rv.setContentsMargins(10, 10, 10, 10)
         rv.setSpacing(8)

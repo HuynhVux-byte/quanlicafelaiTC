@@ -1034,11 +1034,73 @@ class POSWindow(QMainWindow):
                     return min(float(km.gia_tri_giam or 0), subtotal)
                 return 0
 
-            def _base_ok(km):
-                if km.ngay_bat_dau and km.ngay_bat_dau > today: return False
-                if km.ngay_ket_thuc and km.ngay_ket_thuc < today: return False
-                if km.dk_tong_tien_tu and subtotal < km.dk_tong_tien_tu: return False
-                return True
+            def _load_vouchers_from_db(s):
+                """Tải danh sách voucher cá nhân, bao gồm cả các voucher MuaXTangY đổi điểm."""
+                vcs = s.query(Voucher).filter_by(ma_kh=kh_id, trang_thai="Chưa dùng").all()
+                res = []
+                for vc in vcs:
+                    if vc.ngay_het_han and vc.ngay_het_han < today: continue
+                    
+                    # Kiểm tra xem voucher này có tương ứng với KM MuaXTangY không
+                    is_mxy = False
+                    km_obj = None
+                    if vc.ten_voucher and vc.ten_voucher.startswith("[Đổi điểm] "):
+                        promo_name = vc.ten_voucher.replace("[Đổi điểm] ", "").strip()
+                        from database.models import KhuyenMai
+                        km_obj = s.query(KhuyenMai).filter_by(ten_km=promo_name).first()
+                        if km_obj and km_obj.loai_km == "MuaXTangY":
+                            is_mxy = True
+
+                    if is_mxy and km_obj:
+                        ma_sp_mua   = km_obj.ma_sp
+                        sl_can_mua  = int(km_obj.so_luong_mua or 1)
+                        sl_tang     = int(km_obj.so_luong_tang or 1)
+                        ma_sp_tang  = km_obj.ma_sp_tang
+                        
+                        from database.models import SanPham as _SP
+                        sp_x = s.get(_SP, ma_sp_mua) if ma_sp_mua else None
+                        sp_y = s.get(_SP, ma_sp_tang) if ma_sp_tang else None
+                        ten_x = sp_x.ten_sp if sp_x else f"SP#{ma_sp_mua}"
+                        ten_y = sp_y.ten_sp if sp_y else f"SP#{ma_sp_tang}"
+                        
+                        qty_co = 0
+                        for it in self.order_table.get_items():
+                            if not it.get("is_gift") and it.get("name", "") == ten_x:
+                                qty_co += it.get("qty", 0)
+                        
+                        du_dk = qty_co >= sl_can_mua
+                        tong_tang = sl_tang if du_dk else 0
+                        
+                        res.append({
+                            "id": vc.id, "ten": vc.ten_voucher or f"Voucher {vc.ma_code}",
+                            "ma_code": vc.ma_code,
+                            "loai": "Voucher", "kieu": "",
+                            "gia_tri": 0.0, "tran": None,
+                            "dk_min": float(vc.dieu_kien_toi_thieu or 0),
+                            "diem_can": 0, "loai_nhom": "Voucher", "_giam": 0.0,
+                            "is_km_table": False,
+                            "_mxy": True, "ten_x": ten_x, "ten_y": ten_y,
+                            "sl_can_mua": sl_can_mua, "sl_tang": sl_tang,
+                            "tong_tang": tong_tang, "du_dk": du_dk,
+                            "msg": f"✅Mua {sl_can_mua} {ten_x}  →  Tặng {tong_tang} {ten_y} (miễn phí)"
+                        })
+                    else:
+                        if vc.loai_giam == "PhanTram":
+                            g = subtotal * float(vc.gia_tri_giam or 0) / 100
+                            if vc.toi_da_giam: g = min(g, float(vc.toi_da_giam))
+                        else:
+                            g = min(float(vc.gia_tri_giam or 0), subtotal)
+                        res.append({
+                            "id": vc.id, "ten": vc.ten_voucher or f"Voucher {vc.ma_code}",
+                            "ma_code": vc.ma_code,
+                            "loai": "Voucher", "kieu": vc.loai_giam or "TienMat",
+                            "gia_tri": float(vc.gia_tri_giam or 0),
+                            "tran": float(vc.toi_da_giam or 0) or None,
+                            "dk_min": float(vc.dieu_kien_toi_thieu or 0),
+                            "diem_can": 0, "loai_nhom": "Voucher", "_giam": g,
+                            "is_km_table": False
+                        })
+                return res
 
             kh_id   = self._linked_kh["id"]   if self._linked_kh else None
             kh_diem = self._linked_kh["diem"] if self._linked_kh else 0
@@ -1160,26 +1222,7 @@ class POSWindow(QMainWindow):
             # Voucher cá nhân của KH đang liên kết
             vouchers = []
             if kh_id:
-                vcs = (session.query(Voucher)
-                       .filter_by(ma_kh=kh_id, trang_thai="Chưa dùng").all())
-                for vc in vcs:
-                    if vc.ngay_het_han and vc.ngay_het_han < today: continue
-                    if vc.dieu_kien_toi_thieu and subtotal < vc.dieu_kien_toi_thieu: continue
-                    if vc.loai_giam == "PhanTram":
-                        g = subtotal * float(vc.gia_tri_giam or 0) / 100
-                        if vc.toi_da_giam: g = min(g, float(vc.toi_da_giam))
-                    else:
-                        g = min(float(vc.gia_tri_giam or 0), subtotal)
-                    vouchers.append({
-                        "id": vc.id, "ten": vc.ten_voucher or f"Voucher {vc.ma_code}",
-                        "ma_code": vc.ma_code,
-                        "loai": "Voucher", "kieu": vc.loai_giam or "TienMat",
-                        "gia_tri": float(vc.gia_tri_giam or 0),
-                        "tran": float(vc.toi_da_giam or 0) or None,
-                        "dk_min": float(vc.dieu_kien_toi_thieu or 0),
-                        "diem_can": 0, "loai_nhom": "Voucher", "_giam": g,
-                        "is_km_table": False
-                    })
+                vouchers = _load_vouchers_from_db(session)
                 vouchers.extend(km_canhan)
                 vouchers.sort(key=lambda x: -x["_giam"])
             else:
@@ -1408,129 +1451,41 @@ class POSWindow(QMainWindow):
                     d = dd_data[row]
                     diem_can = d.get("diem_can", 0)
 
-                    # ── MuaXTangY: đổi điểm → áp quà tặng thẳng vào hóa đơn ──
+                    # ── Xác nhận đổi điểm ───────────────────────────────
                     if d.get("_mxy"):
-                        # Nếu đã có KM MuaXTangY đang áp → không cho đổi thêm trong cùng 1 đơn
-                        if self._applied_km and self._applied_km.get("_mxy"):
-                            QMessageBox.warning(
-                                dlg, "Không thể cộng dồn",
-                                "Đơn này đã áp dụng 1 ưu đãi Mua X Tặng Y rồi.\n\n"
-                                "Mỗi đơn hàng chỉ được áp dụng 1 ưu đãi loại này.\n"
-                                "Bấm '❌ Bỏ KM' trước nếu muốn đổi sang ưu đãi khác."
-                            )
-                            return
-
-                        # Kiểm tra điều kiện số lượng sp X trong hóa đơn hiện tại
-                        ten_x    = d["ten_x"]
-                        sl_can   = d["sl_can_mua"]
-                        sl_tang  = d["sl_tang"]
-                        ten_y    = d["ten_y"]
-                        qty_co   = sum(
-                            it.get("qty", 0)
-                            for it in self.order_table.get_items()
-                            if not it.get("is_gift") and it.get("name", "") == ten_x
-                        )
-                        if qty_co < sl_can:
-                            QMessageBox.warning(
-                                dlg, "Chưa đủ điều kiện",
-                                f"⚠️ KM này yêu cầu mua ít nhất {sl_can}× {ten_x}.\n\n"
-                                f"Hóa đơn hiện có: {qty_co}× {ten_x}.\n"
-                                f"Vui lòng thêm món trước khi đổi điểm."
-                            )
-                            return
-
-                        so_bo     = qty_co // sl_can
-                        tong_tang = sl_tang   # luôn tặng đúng sl_tang cố định
-
-                        # Xác nhận đổi điểm
-                        if QMessageBox.question(
-                            dlg, "Xác nhận đổi điểm",
-                            f"Đổi <b>{diem_can:,} điểm</b> để nhận ưu đãi:<br><br>"
+                        msg_confirm = (
+                            f"Đổi <b>{diem_can:,} điểm</b> để nhận voucher:<br><br>"
                             f"🎁 <b>{d['ten']}</b><br>"
-                            f"→ Tặng <b>{tong_tang}× {ten_y}</b> miễn phí<br><br>"
-                            f"Ưu đãi sẽ được áp dụng ngay vào hóa đơn.",
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-                        ) != QMessageBox.Yes:
-                            return
-
-                        # Trừ điểm
-                        from database.models import KhachHang, LichSuDiemKH
-                        s2 = get_session()
-                        try:
-                            kh_obj = s2.query(KhachHang).filter_by(id=kh_id).first()
-                            if not kh_obj:
-                                QMessageBox.critical(dlg, "Lỗi", "Không tìm thấy khách hàng!"); return
-                            if (kh_obj.diem_tich_luy or 0) < diem_can:
-                                QMessageBox.warning(dlg, "Không đủ điểm",
-                                    f"Khách chỉ còn {kh_obj.diem_tich_luy or 0:,} điểm!"); return
-
-                            kh_obj.diem_tich_luy = (kh_obj.diem_tich_luy or 0) - diem_can
-                            s2.add(LichSuDiemKH(
-                                ma_kh=kh_id,
-                                loai="Đổi điểm",
-                                so_diem=-diem_can,
-                                mo_ta=f"Đổi điểm MuaXTangY tại POS: {d['ten']}",
-                            ))
-                            from database.models import KhuyenMai as _KM
-                            km_obj2 = s2.get(_KM, d["id"])
-                            if km_obj2:
-                                km_obj2.so_luot_da_dung = (km_obj2.so_luot_da_dung or 0) + 1
-                            s2.commit()
-                            diem_con_lai = kh_obj.diem_tich_luy
-                        except Exception as e2:
-                            s2.rollback()
-                            QMessageBox.critical(dlg, "Lỗi", str(e2)); return
-                        finally:
-                            s2.close()
-
-                        # Cập nhật điểm UI
-                        if self._linked_kh:
-                            self._linked_kh["diem"] = diem_con_lai
-                        self._update_loyalty_label()
-
-                        # Xoá quà cũ (nếu có) rồi thêm quà mới — tránh cộng dồn
-                        self.order_table.remove_gifts()
-                        d["tong_tang"] = tong_tang
-                        d["du_dk"]     = True
-                        self.order_table.add_gift(ten_y + " (Quà tặng)", tong_tang)
-                        self._applied_km         = d
-                        self._km_user_picked     = True
-                        self._applied_voucher_id = None
-                        self._km_discount        = 0.0
-                        self.update_grand_total()
-                        _log(self.user.id, "Đổi điểm MuaXTangY",
-                             f"{d['ten']}: trừ {diem_can:,} điểm, tặng {tong_tang}× {ten_y}",
-                             o_dau="POS - Thanh toán")
-
-                        QMessageBox.information(
-                            dlg, "✅ Đổi điểm thành công",
-                            f"Đã trừ {diem_can:,} điểm!\n\n"
-                            f"Đã thêm {tong_tang}× {ten_y} (miễn phí) vào hóa đơn.\n"
-                            f"Điểm còn lại: {diem_con_lai:,}"
+                            f"→ Tặng <b>{d['sl_tang']}× {d['ten_y']}</b> miễn phí<br><br>"
+                            f"Voucher sẽ được lưu vào tài khoản khách hàng."
                         )
-                        dlg.accept()
-                        return
+                        loai_giam = "TienMat"
+                        gia_tri = 0.0
+                        tran_giam = None
+                        dk_min = 0.0
+                    else:
+                        loai_giam = d.get("kieu", "")
+                        gia_tri   = d.get("gia_tri", 0)
+                        if loai_giam not in ("PhanTram", "TienMat"):
+                            QMessageBox.warning(dlg, "Loại KM không hợp lệ",
+                                f"KM '{d['ten']}' có loại '{loai_giam}' không thể tạo voucher.\n"
+                                "Chỉ hỗ trợ: Giảm % hoặc Giảm tiền.")
+                            return
+                        if not gia_tri or gia_tri <= 0:
+                            QMessageBox.warning(dlg, "Giá trị không hợp lệ",
+                                f"KM '{d['ten']}' có giá trị giảm = 0.\n"
+                                "Vui lòng kiểm tra lại cấu hình KM.")
+                            return
+                        msg_confirm = (
+                            f"Đổi <b>{diem_can:,} điểm</b> để nhận voucher:<br><br>"
+                            f"🎁 <b>{d['ten']}</b><br><br>"
+                            f"Voucher sẽ được lưu vào tài khoản khách hàng."
+                        )
+                        tran_giam = d.get("tran")
+                        dk_min = d.get("dk_min", 0) or 0
 
-                    # ── KM giảm tiền thường: validate + tạo voucher ──────
-                    loai_giam = d.get("kieu", "")
-                    gia_tri   = d.get("gia_tri", 0)
-                    if loai_giam not in ("PhanTram", "TienMat"):
-                        QMessageBox.warning(dlg, "Loại KM không hợp lệ",
-                            f"KM '{d['ten']}' có loại '{loai_giam}' không thể tạo voucher.\n"
-                            "Chỉ hỗ trợ: Giảm % hoặc Giảm tiền.")
-                        return
-                    if not gia_tri or gia_tri <= 0:
-                        QMessageBox.warning(dlg, "Giá trị không hợp lệ",
-                            f"KM '{d['ten']}' có giá trị giảm = 0.\n"
-                            "Vui lòng kiểm tra lại cấu hình KM.")
-                        return
-
-                    # Xác nhận tạo voucher
                     if QMessageBox.question(
-                        dlg, "Xác nhận đổi điểm",
-                        f"Đổi <b>{diem_can:,} điểm</b> để nhận voucher:<br><br>"
-                        f"🎁 <b>{d['ten']}</b><br><br>"
-                        f"Voucher sẽ được lưu vào tài khoản khách hàng.",
+                        dlg, "Xác nhận đổi điểm", msg_confirm,
                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                     ) != QMessageBox.Yes:
                         return
@@ -1565,8 +1520,8 @@ class POSWindow(QMainWindow):
                             ten_voucher=f"[Đổi điểm] {d['ten']}",
                             loai_giam=loai_giam,
                             gia_tri_giam=gia_tri,
-                            toi_da_giam=d.get("tran"),
-                            dieu_kien_toi_thieu=d.get("dk_min", 0) or 0,
+                            toi_da_giam=tran_giam,
+                            dieu_kien_toi_thieu=dk_min,
                             ngay_het_han=het_han,
                             trang_thai="Chưa dùng",
                         )
@@ -1585,6 +1540,10 @@ class POSWindow(QMainWindow):
                             self._linked_kh["diem"] = diem_con_lai
                         self._update_loyalty_label()
 
+                        _log(self.user.id, "Đổi điểm KM",
+                             f"{d['ten']}: trừ {diem_can:,} điểm, tạo voucher {vc_code}",
+                             o_dau="POS - Thanh toán")
+
                         QMessageBox.information(
                             dlg, "✅ Đổi điểm thành công",
                             f"Đã trừ {diem_can:,} điểm!\n\n"
@@ -1599,26 +1558,8 @@ class POSWindow(QMainWindow):
                         # Reload danh sách voucher
                         s3 = get_session()
                         try:
-                            vcs2 = s3.query(Voucher).filter_by(
-                                ma_kh=kh_id, trang_thai="Chưa dùng").all()
                             vouchers.clear()
-                            for vc2 in vcs2:
-                                if vc2.ngay_het_han and vc2.ngay_het_han < _date.today(): continue
-                                if vc2.dieu_kien_toi_thieu and subtotal < vc2.dieu_kien_toi_thieu: continue
-                                if vc2.loai_giam == "PhanTram":
-                                    g2 = subtotal * float(vc2.gia_tri_giam or 0) / 100
-                                    if vc2.toi_da_giam: g2 = min(g2, float(vc2.toi_da_giam))
-                                else:
-                                    g2 = min(float(vc2.gia_tri_giam or 0), subtotal)
-                                vouchers.append({
-                                    "id": vc2.id, "ten": vc2.ten_voucher or f"Voucher {vc2.ma_code}",
-                                    "ma_code": vc2.ma_code,
-                                    "loai": "Voucher", "kieu": vc2.loai_giam or "TienMat",
-                                    "gia_tri": float(vc2.gia_tri_giam or 0),
-                                    "tran": float(vc2.toi_da_giam or 0) or None,
-                                    "dk_min": float(vc2.dieu_kien_toi_thieu or 0),
-                                    "diem_can": 0, "loai_nhom": "Voucher", "_giam": g2,
-                                })
+                            vouchers.extend(_load_vouchers_from_db(s3))
                         finally:
                             s3.close()
                         vouchers.sort(key=lambda x: -x["_giam"])
@@ -1631,7 +1572,7 @@ class POSWindow(QMainWindow):
                         tbl_vc.setMaximumHeight(160)
                         for idx in range(tca.count()):
                             w = tca.itemAt(idx).widget()
-                            if w and isinstance(w, QLabel) and "Voucher cá nhân" in w.text():
+                            if w and isinstance(w, QLabel) and "Voucher" in w.text():
                                 tca.insertWidget(idx + 1, tbl_vc)
                                 break
                         else:
@@ -1728,7 +1669,7 @@ class POSWindow(QMainWindow):
                 self.order_table.add_gift(sel["ten_y"] + " (Quà tặng)", sel["tong_tang"])
                 self._applied_km = sel
                 self._km_user_picked = True
-                self._applied_voucher_id = None
+                self._applied_voucher_id = sel["id"] if sel.get("loai_nhom") == "Voucher" else None
                 self._km_discount = 0.0
                 self.update_grand_total()
                 _log(self.user.id, "Áp dụng KM MuaXTangY",
@@ -1748,10 +1689,16 @@ class POSWindow(QMainWindow):
                 return
 
             # Kiểm tra Voucher
-            if sel.get("loai_nhom") == "Voucher" and not kh_id:
-                QMessageBox.warning(dlg, "Cần KH liên kết",
-                    "Voucher cá nhân yêu cầu liên kết số điện thoại khách hàng!")
-                return
+            if sel.get("loai_nhom") == "Voucher":
+                if not kh_id:
+                    QMessageBox.warning(dlg, "Cần KH liên kết",
+                        "Voucher cá nhân yêu cầu liên kết số điện thoại khách hàng!")
+                    return
+                if sel.get("dk_min", 0) > 0 and subtotal < sel["dk_min"]:
+                    QMessageBox.warning(dlg, "Chưa đủ điều kiện",
+                        f"Voucher này yêu cầu đơn hàng tối thiểu từ {int(sel['dk_min']):,}đ.\n"
+                        f"Đơn hiện tại: {int(subtotal):,}đ")
+                    return
 
             # Bỏ quà tặng cũ nếu chuyển sang KM khác
             self.order_table.remove_gifts()

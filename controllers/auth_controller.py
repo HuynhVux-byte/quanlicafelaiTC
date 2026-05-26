@@ -170,11 +170,17 @@ def authenticate_user(email: str, password: str):
                 else:
                     ten_ca_log = f"{ca_checkin_obj.ten_ca} (đã check-in)"
             else:
-                if user.chuc_vu != "Admin":
-                    ghi_nhat_ky_dang_nhap(ten_dang_nhap=email, hanh_dong="Đăng nhập",
-                                          ket_qua="Thất bại", ghi_chu="Chưa đến giờ check-in ca")
-                    return {"error": "Chưa đến giờ check-in. Vui lòng quay lại trước giờ ca 15 phút."}
-                ten_ca_log = "Có ca nhưng ngoài giờ (Admin)"
+                # Có ca hôm nay nhưng ngoài giờ check-in → Cho phép đăng nhập bất thường (Khong_ca)
+                cc_tu_do = (session.query(ChamCong)
+                            .filter_by(nhan_vien_id=ma_nv, ngay=today,
+                                       ma_ca=None, trang_thai="Khong_ca")
+                            .filter(ChamCong.thoi_gian_ra.is_(None)).first())
+                if cc_tu_do is None:
+                    session.add(ChamCong(
+                        nhan_vien_id=ma_nv, ma_ca=None, ngay=today,
+                        thoi_gian_vao=now, trang_thai="Khong_ca", ma_phien=ma_phien,
+                    ))
+                ten_ca_log = "Có ca nhưng ngoài giờ (Đăng nhập bất thường)"
         else:
             # Không có phân công → Khong_ca
             cc_tu_do = (session.query(ChamCong)

@@ -2471,6 +2471,27 @@ class POSWindow(QMainWindow):
         _log(self.user.id, "Mở Quản lý KM", o_dau="Khuyến mãi")
         from views.khuyen_mai_manager import KhuyenMaiManagerDialog
         KhuyenMaiManagerDialog(self).exec()
+
+        # Kiểm tra xem KM đang áp dụng có bị xóa hoặc dừng chạy không
+        if self._applied_km:
+            from database.db_config import get_session
+            from database.models import KhuyenMai
+            session = get_session()
+            try:
+                # Chỉ kiểm tra nếu là KM thuộc bảng khuyến mãi (is_km_table=True hoặc mặc định)
+                if self._applied_km.get("is_km_table", True):
+                    km = session.query(KhuyenMai).filter_by(id=self._applied_km["id"]).first()
+                    if not km or km.trang_thai != "Đang chạy":
+                        self.order_table.remove_gifts()
+                        self._applied_km = None
+                        self._km_discount = 0.0
+                        self._km_user_picked = False
+                        self._applied_voucher_id = None
+                        self.update_grand_total()
+            except Exception:
+                pass
+            finally:
+                session.close()
     def show_voucher_manager(self):
         from views.voucher_manager import VoucherManagerDialog
         VoucherManagerDialog(self, ma_nv=self.user.id).exec()

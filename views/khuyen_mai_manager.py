@@ -943,8 +943,13 @@ class KhuyenMaiForm(QDialog):
                 try: km.danh_muc   = None
                 except Exception: pass
             else:
-                km.kieu_giam      = self.cb_kieu.currentText()
-                km.gia_tri_giam   = int(self.sp_gt.text() or 0)
+                kieu_giam = self.cb_kieu.currentText()
+                gia_tri_giam = int(self.sp_gt.text() or 0)
+                if kieu_giam == "PhanTram" and gia_tri_giam > 100:
+                    QMessageBox.warning(self, "Giá trị sai", "Khuyến mãi phần trăm không được lớn hơn 100%!")
+                    return
+                km.kieu_giam      = kieu_giam
+                km.gia_tri_giam   = gia_tri_giam
                 km.toi_da_giam    = int(self.sp_tran.text()) if self.sp_tran.text() else None
                 km.dk_tong_tien_tu = int(self.sp_dk.text() or 0)
                 km.ma_sp          = self.cb_sp.currentData() if loai == "SanPham" else None

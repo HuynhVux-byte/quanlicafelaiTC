@@ -752,6 +752,10 @@ class POSWindow(QMainWindow):
         tax = grand_total * 0.10
         subtotal = grand_total + tax
 
+        # Tự động tìm và áp dụng KM tốt nhất nếu người dùng không chọn thủ công
+        if not getattr(self, '_km_user_picked', False):
+            self._auto_apply_best_km()
+
         # Tính giảm KM
         self._km_discount = 0
         km_line = ""
@@ -945,6 +949,9 @@ class POSWindow(QMainWindow):
                     best_km   = km
 
             if not best_km or best_giam <= 0:
+                # Nếu trước đó đang áp dụng KM tự động -> gỡ bỏ
+                self._applied_km  = None
+                self._km_discount = 0.0
                 return
 
             self._applied_km  = {
@@ -956,7 +963,6 @@ class POSWindow(QMainWindow):
                 "tran":    best_km.toi_da_giam,
             }
             self._km_discount = best_giam
-            self.update_grand_total()
         except Exception:
             pass  # Lỗi auto-km không làm crash app
 

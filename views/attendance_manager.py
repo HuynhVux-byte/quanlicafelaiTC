@@ -546,8 +546,8 @@ class AttendanceDialog(QDialog):
             lbl = QLabel(label)
             lbl.setAlignment(Qt.AlignCenter)
             lbl.setStyleSheet(
-                f"color:{txt_color}99; font-size:10px; font-weight:bold;"
-                f" background:transparent; border:none; letter-spacing:0.3px;"
+                "color: #475569; font-size: 11px; font-weight: bold;"
+                " background: transparent; border: none; letter-spacing: 0.3px;"
             )
             cl.addWidget(num)
             cl.addWidget(lbl)
